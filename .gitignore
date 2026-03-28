@@ -1,0 +1,9 @@
+# PDF dei clienti - dati sensibili
+*.pdf
+
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# Node modules (se presenti)
+node_modules/
