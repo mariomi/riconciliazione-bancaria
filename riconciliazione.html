@@ -174,7 +174,7 @@ td.dare{color:var(--red)}td.avere{color:var(--green)}
       <div class="stat-card"><div class="stat-value blue" id="s-pm">0</div><div class="stat-label">Movimenti Partitario</div></div>
       <div class="stat-card"><div class="stat-value blue" id="s-em">0</div><div class="stat-label">Movimenti Estratto Conto</div></div>
       <div class="stat-card"><div class="stat-value green" id="s-ex">0</div><div class="stat-label">Match Esatti</div></div>
-      <div class="stat-card"><div class="stat-value orange" id="s-fz">0</div><div class="stat-label">Match Approssimativi</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--orange)" id="s-fz">0</div><div class="stat-label">Match Approssimativi</div></div>
       <div class="stat-card"><div class="stat-value red" id="s-un">0</div><div class="stat-label">Non Trovati</div></div>
     </div>
 
@@ -183,24 +183,23 @@ td.dare{color:var(--red)}td.avere{color:var(--green)}
       <select class="filter-select" id="fr-type" onchange="filtRec()">
         <option value="all">Tutti i risultati</option><option value="exact">Match Esatti</option><option value="fuzzy">Match Approssimativi</option><option value="none">Non Trovati</option>
       </select>
-      <select class="filter-select" id="fr-bank" onchange="filtRec()"><option value="all">Tutte le banche</option></select>
       <input class="filter-input" type="text" placeholder="Cerca descrizione..." id="fr-desc" oninput="filtRec()">
       <div style="flex:1"></div>
       <button class="btn btn-primary btn-sm" onclick="downloadAnnotatedPDFs()">Scarica PDF Annotati</button>
       <button class="btn btn-secondary btn-sm" onclick="backToUpload()">Nuova analisi</button>
     </div>
 
-    <!-- Exact Matches -->
+    <!-- Match Esatti -->
     <div class="section-head" id="st-ex"><div class="section-dot" style="background:var(--green)"></div><h3>Match Esatti</h3><span class="section-count" id="cn-ex">(0)</span></div>
-    <div class="panel" id="pn-ex"><div class="table-wrap"><div class="table-scroll" style="max-height:380px">
-      <table><thead><tr><th></th><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo E/C</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo Part.</th><th>Score</th></tr></thead>
+    <div class="panel" id="pn-ex"><div class="table-wrap"><div class="table-scroll" style="max-height:500px">
+      <table><thead><tr><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo E/C</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo Part.</th></tr></thead>
       <tbody id="tb-ex"></tbody></table>
     </div></div></div>
 
-    <!-- Fuzzy Matches -->
+    <!-- Match Approssimativi -->
     <div class="section-head" id="st-fz"><div class="section-dot" style="background:var(--orange)"></div><h3>Match Approssimativi</h3><span class="section-count" id="cn-fz">(0)</span></div>
-    <div class="panel" id="pn-fz"><div class="table-wrap"><div class="table-scroll" style="max-height:380px">
-      <table><thead><tr><th></th><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo E/C</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo Part.</th><th>Score</th></tr></thead>
+    <div class="panel" id="pn-fz"><div class="table-wrap"><div class="table-scroll" style="max-height:500px">
+      <table><thead><tr><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo E/C</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo Part.</th></tr></thead>
       <tbody id="tb-fz"></tbody></table>
     </div></div></div>
 
@@ -366,6 +365,7 @@ function detectBank(pages){
   if(/INTESA.*SANPAOLO/i.test(txt))return{key:'intesa',name:'Intesa San Paolo'};
   if(/BANCO\s*BPM/i.test(txt))return{key:'bpm',name:'Banco BPM'};
   if(/Banca della Marca/i.test(txt)||/CREDITO COOPERATIVO/i.test(txt)||/BCC ICCREA/i.test(txt))return{key:'bcc',name:'Banca della Marca (BCC)'};
+  if(/Volksbank/i.test(txt)||/BPAAIT/i.test(txt)||/Banca Popolare dell.Alto Adige/i.test(txt))return{key:'volksbank',name:'Volksbank'};
   return null;
 }
 
@@ -480,6 +480,7 @@ function parsePart(pages,fname){
 function parseIntesa(pages,fname){
   const mov=[];
   let cur=null;
+  let inRiepilogo=false;
 
   for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
     const pgItems=pages[pgIdx];
@@ -488,9 +489,14 @@ function parseIntesa(pages,fname){
       const l=lines[i];
       const t=l.text;
 
+      // Detect riepilogo/summary section and stop parsing movements
+      if(/Riepilogo/i.test(t)||/0%\s*Totale\s*Tipologia/i.test(t)||/Tipologia\s*affidamento/i.test(t)){inRiepilogo=true;continue}
+      // Resume if we see "Dettaglio movimenti" again (next month's section)
+      if(/Dettaglio\s*movimenti/i.test(t)){inRiepilogo=false;continue}
+      if(inRiepilogo)continue;
+
       if(/Data\s*Operazione/i.test(t))continue;
       if(/Saldo\s*(iniziale|finale)/i.test(t))continue;
-      if(/Riepilogo/i.test(t))continue;
       if(/Pagina\s*\d/i.test(t))continue;
       if(/INTESA.*SANPAOLO/i.test(t))continue;
       if(/ESTRATTO\s*CONTO\s*N/i.test(t))continue;
@@ -572,7 +578,7 @@ function parseIntesa(pages,fname){
     }
   }
   if(cur&&cur.date)mov.push(cur);
-  return mov.filter(m=>m.dare>0||m.avere>0);
+  return mov.filter(m=>(m.dare>0||m.avere>0)&&!/^\d{1,3}$/.test(m.description.trim()));
 }
 
 // ===== BANCO BPM PARSER =====
@@ -800,6 +806,121 @@ function parseBCC(pages,fname){
   return mov;
 }
 
+// ===== VOLKSBANK PARSER =====
+function parseVolksbank(pages,fname){
+  const mov=[];
+  let cur=null;
+  let inMovSection=false;
+
+  for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
+    const pgItems=pages[pgIdx];
+    const lines=buildLines(pgItems);
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const t=l.text;
+
+      // Detect movement table header to start parsing
+      if(/Descrizione\s*operazioni/i.test(t)&&/Data/i.test(t)){inMovSection=true;continue}
+
+      // Skip non-movement lines
+      if(!inMovSection)continue;
+      if(/Volksbank/i.test(t)&&!/Bonifico|Pagamento|Addebito|Versamento|Commissioni|Disposizione/i.test(t))continue;
+      if(/Südtiroler/i.test(t))continue;
+      if(/BPAAIT/i.test(t)&&t.trim().length<20)continue;
+      if(/Pag\.\s*\d+\s*di\s*\d/i.test(t))continue;
+      if(/ESTRATTO\s*CONTO/i.test(t))continue;
+      if(/CONTO\s*CORRENTE\s*N/i.test(t))continue;
+      if(/Filiale|BIC|IBAN|Telefono|e-mail/i.test(t)&&!/Bonifico|Pagamento/i.test(t))continue;
+      if(/DIP\.\s*\d/i.test(t)&&t.trim().length<15)continue;
+      if(/Contact\s*Center/i.test(t))continue;
+      if(/Verifica\s*del\s*Beneficiario/i.test(t))continue;
+      if(/In\s*mancanza\s*di\s*opposizione/i.test(t))continue;
+      if(/Imposta\s*di\s*bollo\s*assolta/i.test(t))continue;
+      if(/www\./i.test(t))continue;
+      if(/capitale\s*sociale/i.test(t))continue;
+      if(/Handelsregister/i.test(t))continue;
+      if(/Fondo\s*Interbancario/i.test(t))continue;
+      if(/^\d{3}\//i.test(t)&&t.trim().length<30&&!/Bonifico|Pagamento/i.test(t))continue;
+
+      // Skip SALDO INIZIALE / FINALE / TOTALI
+      if(/SALDO\s*(INIZIALE|FINALE)/i.test(t))continue;
+      if(/TOTALI\s*DEI\s*MOVIMENTI/i.test(t))continue;
+
+      // Match movement lines: DD/MM followed by DD/MM/YY or just amounts
+      // Volksbank format: "DD/MM  DD/MM/YY  amount  description" or "DD/MM  DD/MM/YY  description"
+      const dm=t.match(/^(\d{2}\/\d{2})\s+(\d{2}\/\d{2}\/\d{2,4})?\s*(.*)/);
+      if(dm&&/^\d{2}\/\d{2}$/.test(dm[1])){
+        if(cur&&cur.date)mov.push(cur);
+
+        // Build full date: DD/MM -> DD/MM/YYYY (infer year from valuta or context)
+        const datePart=dm[1]; // DD/MM
+        const valutaRaw=dm[2]||''; // DD/MM/YY
+        let year='2025';
+        if(valutaRaw){
+          const vm=valutaRaw.match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
+          if(vm){
+            year=vm[3].length===2?'20'+vm[3]:vm[3];
+          }
+        }
+        const dateStr=datePart+'/'+year;
+        const date=pDate(dateStr);
+        const dateValuta=valutaRaw?pDate(valutaRaw):date;
+
+        // Parse amounts from item positions
+        let movDare=0,movAvere=0;
+        const descParts=[];
+
+        for(const it of l.items){
+          const x=it.x;
+          const txt=it.t.replace(/[\u2007]/g,'').trim();
+          if(!txt)continue;
+          // Skip date fields
+          if(/^\d{2}\/\d{2}(\/\d{2,4})?$/.test(txt))continue;
+
+          const cleanTxt=txt.replace(/\s/g,'');
+          const isAmt=/^[\d\.]+,\d{2}$/.test(cleanTxt);
+          if(isAmt&&x>110&&x<270){
+            // Only treat as amount if in the Dare/Avere columns area
+            const val=pNum(txt);
+            if(val!==null){
+              // Volksbank: Dare column x~158, Avere column x~230-244
+              if(x>200){movAvere=val}
+              else{movDare=val}
+            }
+          }else{
+            // Description starts at x~281
+            if(x>270)descParts.push(txt);
+          }
+        }
+
+        cur={
+          type:'estratto',source:'Volksbank',bank:'volksbank',
+          date,dateValuta,
+          description:descParts.join(' ').trim(),
+          dare:movDare||0,avere:movAvere||0,
+          amount:(movAvere||0)-(movDare||0),
+          fileName:fname,_pgIdx:pgIdx,_oy:l.oy,_oh:l.oh
+        };
+      }else if(cur){
+        // Continuation line: add to description
+        const cleaned=l.items
+          .filter(it=>{
+            const x=it.x;
+            const txt=it.t.replace(/[\u2007]/g,'').trim();
+            return x>270&&txt.length>0&&!/^[\d\.]+,\d{2}$/.test(txt.replace(/\s/g,''));
+          })
+          .map(it=>it.t.replace(/[\u2007]/g,'').trim()).join(' ').trim();
+        if(cleaned.length>1&&!/^Pag\./i.test(cleaned)&&!/Volksbank/i.test(cleaned)&&
+           !/ESTRATTO/i.test(cleaned)&&!/Movimenti/i.test(cleaned))
+          cur.description+=' '+cleaned;
+      }
+    }
+  }
+  if(cur&&cur.date)mov.push(cur);
+  // Filter out entries without amounts
+  return mov.filter(m=>(m.dare>0||m.avere>0));
+}
+
 // ===== ONE-CLICK: EXTRACT + RECONCILE =====
 async function runAll(){
   const prog=$('prog'),pf=$('prog-f'),pt=$('prog-t');
@@ -844,6 +965,7 @@ async function runAll(){
         if(bank.key==='intesa')m=parseIntesa(pages,file.name);
         else if(bank.key==='bpm')m=parseBPM(pages,file.name);
         else if(bank.key==='bcc')m=parseBCC(pages,file.name);
+        else if(bank.key==='volksbank')m=parseVolksbank(pages,file.name);
         else m=[];
         S.em.push(...m);
         S.ecFiles[file.name]={bytes:pages._bytes,meta:pages._meta};
@@ -1012,10 +1134,6 @@ function reconcile(){
   $('cn-ue').textContent='('+R.ue.length+')';
   $('cn-up').textContent='('+R.up.length+')';
 
-  const bf=$('fr-bank');
-  const bks=new Set();ec.forEach(m=>bks.add(m.source));
-  bf.innerHTML='<option value="all">Tutte le banche</option>';
-  bks.forEach(b=>bf.innerHTML+=`<option value="${b}">${b}</option>`);
 
   renderRec();
 }
@@ -1089,23 +1207,19 @@ function fmtAmt(m,type){
 
 function renderRec(){
   const R=S.res;if(!R)return;
-  $('tb-ex').innerHTML=R.exact.map(({ec,pt,score})=>`<tr>
-    <td><span class="match-badge exact">Esatto</span></td>
+  const sortByDate=(a,b)=>{
+    const da=a.ec.date.split('/').reverse().join('');
+    const db=b.ec.date.split('/').reverse().join('');
+    return da.localeCompare(db);
+  };
+  const matchRow=({ec,pt})=>`<tr>
     <td>${ec.date}</td><td class="desc-cell" title="${esc(ec.description)}">${ec.description}</td>
     <td class="am">${fmtAmt(ec,'ec')}</td>
     <td>${pt.date}</td><td class="desc-cell" title="${esc(pt.description)}">${pt.description}</td>
     <td class="am">${fmtAmt(pt,'pt')}</td>
-    <td><span class="match-badge exact">${Math.round(score*100)}%</span></td>
-  </tr>`).join('');
-
-  $('tb-fz').innerHTML=R.fuzzy.map(({ec,pt,score})=>`<tr>
-    <td><span class="match-badge fuzzy">Approx</span></td>
-    <td>${ec.date}</td><td class="desc-cell" title="${esc(ec.description)}">${ec.description}</td>
-    <td class="am">${fmtAmt(ec,'ec')}</td>
-    <td>${pt.date}</td><td class="desc-cell" title="${esc(pt.description)}">${pt.description}</td>
-    <td class="am">${fmtAmt(pt,'pt')}</td>
-    <td><span class="match-badge fuzzy">${Math.round(score*100)}%</span> <div class="score-bar"><div class="score-fill" style="width:${score*100}%;background:${score>.7?'var(--green)':score>.5?'var(--orange)':'var(--red)'}"></div></div></td>
-  </tr>`).join('');
+  </tr>`;
+  $('tb-ex').innerHTML=[...R.exact].sort(sortByDate).map(matchRow).join('');
+  $('tb-fz').innerHTML=[...R.fuzzy].sort(sortByDate).map(matchRow).join('');
 
   $('tb-ue').innerHTML=R.ue.map(m=>`<tr>
     <td><span class="tag">${m.source}</span></td>
@@ -1123,7 +1237,7 @@ function renderRec(){
 }
 
 function filtRec(){
-  const type=$('fr-type').value,bank=$('fr-bank').value,desc=$('fr-desc').value.toLowerCase();
+  const type=$('fr-type').value,desc=$('fr-desc').value.toLowerCase();
   [['ex','exact'],['fz','fuzzy'],['ue','none'],['up','none']].forEach(([id,mt])=>{
     const pn=$('pn-'+id),st=$('st-'+id);
     if(type!=='all'&&mt!==type){pn.style.display='none';st.style.display='none';return}
@@ -1132,7 +1246,6 @@ function filtRec(){
       let show=true;
       const txt=r.textContent.toLowerCase();
       if(desc&&!txt.includes(desc))show=false;
-      if(bank!=='all'&&!txt.includes(bank.toLowerCase()))show=false;
       r.style.display=show?'':'none';
     });
   });
@@ -1183,10 +1296,25 @@ async function downloadAnnotatedPDFs(){
       continue;
     }
 
-    const pdfDoc=await PDFDocument.load(fdata.bytes.slice(0),{ignoreEncryption:true});
-    const pgs=pdfDoc.getPages();
+    const srcDoc=await PDFDocument.load(fdata.bytes.slice(0),{ignoreEncryption:true});
     const movs=byFile[fname];
     let annotated=0,skipped=0;
+
+    // Check if the source PDF is encrypted
+    const isEncrypted=srcDoc.catalog&&srcDoc.catalog.context&&
+      srcDoc.catalog.context.trailerInfo&&srcDoc.catalog.context.trailerInfo.Encrypt;
+
+    let pdfDoc, pgs;
+    if(isEncrypted){
+      // Copy all pages into a fresh (unencrypted) document
+      pdfDoc=await PDFDocument.create();
+      const copiedPages=await pdfDoc.copyPages(srcDoc,srcDoc.getPageIndices());
+      copiedPages.forEach(p=>pdfDoc.addPage(p));
+      pgs=pdfDoc.getPages();
+    }else{
+      pdfDoc=srcDoc;
+      pgs=pdfDoc.getPages();
+    }
 
     // Track which pages have annotations
     const pagesWithAnnotations=new Set();
@@ -1200,18 +1328,18 @@ async function downloadAnnotatedPDFs(){
       const{width,height}=pg.getSize();
 
       if(m._oy==null){skipped++;continue;}
-      const fh=m._oh||8;
+      const fh=m._oh||10;
 
-      // LEFT MARGIN BAR: solid color bar on the left edge (4pt wide)
+      // FULL-WIDTH SEMI-TRANSPARENT HIGHLIGHT behind the row
       pg.drawRectangle({
-        x:0, y:m._oy-1, width:4, height:fh+1,
-        color:rgb(col.r,col.g,col.b), opacity:1.0, borderWidth:0
+        x:0, y:m._oy-2, width:width, height:fh+4,
+        color:rgb(col.r,col.g,col.b), opacity:0.12, borderWidth:0
       });
 
-      // SMALL COLORED DOT at right margin as secondary indicator
+      // LEFT MARGIN BAR: thick solid color bar (8pt wide)
       pg.drawRectangle({
-        x:width-6, y:m._oy+fh/2-2, width:4, height:4,
-        color:rgb(col.r,col.g,col.b), opacity:0.8, borderWidth:0
+        x:0, y:m._oy-2, width:8, height:fh+4,
+        color:rgb(col.r,col.g,col.b), opacity:0.9, borderWidth:0
       });
 
       pagesWithAnnotations.add(pgIdx);
@@ -1232,6 +1360,14 @@ async function downloadAnnotatedPDFs(){
       // Red
       legPg.drawRectangle({x:125,y:legY,width:legSize,height:legSize,color:rgb(0.90,0.20,0.15),opacity:1});
       legPg.drawText('Non Trovato',{x:133,y:legY+1,size:5,color:rgb(0.3,0.3,0.3)});
+    }
+
+    // Debug: log first 3 annotation coordinates
+    const debugMovs=movs.filter(m=>m._oy!=null&&m._pgIdx!=null).slice(0,3);
+    if(debugMovs.length>0){
+      log('DEBUG coords (first 3): '+debugMovs.map(m=>'pg='+m._pgIdx+' oy='+m._oy?.toFixed(1)+' oh='+m._oh?.toFixed(1)).join(' | '));
+    }else{
+      log('DEBUG: nessun movimento con coordinate valide per '+fname);
     }
 
     const pdfBytes=await pdfDoc.save();
