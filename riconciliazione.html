@@ -58,6 +58,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text'
 .file-item .remove{background:0;border:0;color:var(--text3);cursor:pointer;font-size:16px;padding:0 2px;line-height:1;transition:color .15s}
 .file-item .remove:hover{color:var(--red)}
 
+/* Analysis card */
+.analysis-card{background:var(--card);border:1px solid var(--border-l);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.analysis-card-body{padding:20px}
+.analysis-field{margin-bottom:16px}
+.analysis-label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;letter-spacing:.3px;text-transform:uppercase}
+.analysis-input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--rs);font-size:14px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+.analysis-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,113,227,.1)}
+.analysis-input::placeholder{color:var(--text3)}
+.analysis-actions{display:flex;align-items:center;justify-content:space-between}
+
 /* Progress */
 .progress-wrap{margin-bottom:24px;display:none}
 .progress-wrap.on{display:block}
@@ -179,9 +189,17 @@ td.dare{color:var(--red)}td.avere{color:var(--green)}
     </div>
     <div class="progress-wrap" id="prog"><div class="progress-bar"><div class="progress-fill" id="prog-f" style="width:0%"></div></div><div class="progress-text" id="prog-t">Elaborazione...</div></div>
     <div class="log-area" id="log"></div>
-    <div class="action-bar">
-      <button class="btn btn-secondary btn-sm" onclick="clearAll()">Cancella tutto</button>
-      <button class="btn btn-primary" onclick="runAll()" id="btn-go" disabled>Avvia Analisi</button>
+    <div class="analysis-card">
+      <div class="analysis-card-body">
+        <div class="analysis-field">
+          <label class="analysis-label" for="analysis-name">Nome analisi</label>
+          <input class="analysis-input" type="text" id="analysis-name" placeholder="Inserisci il nome per identificare i file esportati" oninput="checkReady()">
+        </div>
+        <div class="analysis-actions">
+          <button class="btn btn-secondary btn-sm" onclick="clearAll()">Cancella tutto</button>
+          <button class="btn btn-primary" onclick="runAll()" id="btn-go" disabled>Avvia Analisi</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -289,7 +307,8 @@ function renFL(t){
   const l=t==='p'?S.pf:S.ef;
   document.getElementById('fl-'+t).innerHTML=l.map((f,i)=>`<div class="file-item"><span class="name">${f.name}</span>${f._bk?`<span class="bank">${f._bk}</span>`:''}${f._st?`<span class="status ${f._st}">${f._stx||''}</span>`:''}<button class="remove" onclick="remF('${t}',${i})">&times;</button></div>`).join('');
 }
-function updBtn(){$('btn-go').disabled=S.pf.length===0&&S.ef.length===0}
+function updBtn(){$('btn-go').disabled=(S.pf.length===0&&S.ef.length===0)||!$('analysis-name').value.trim()}
+function checkReady(){updBtn()}
 function clearAll(){S.pf=[];S.ef=[];S.pm=[];S.em=[];S.res=null;renFL('p');renFL('e');updBtn();$('log').innerHTML='';$('log').classList.remove('on')}
 
 // ===== LOG =====
@@ -941,6 +960,9 @@ function parseVolksbank(pages,fname){
 
 // ===== ONE-CLICK: EXTRACT + RECONCILE =====
 async function runAll(){
+  const aName=$('analysis-name').value.trim();
+  if(!aName){alert('Inserisci un nome per l\'analisi.');return;}
+  S.analysisName=aName;
   const prog=$('prog'),pf=$('prog-f'),pt=$('prog-t');
   prog.classList.add('on');
   $('btn-go').disabled=true;
@@ -1239,14 +1261,19 @@ function renderRec(){
   $('tb-ex').innerHTML=[...R.exact].sort(sortByDate).map(matchRow).join('');
   $('tb-fz').innerHTML=[...R.fuzzy].sort(sortByDate).map(matchRow).join('');
 
-  $('tb-ue').innerHTML=R.ue.map(m=>`<tr>
+  const sortByDateSingle=(a,b)=>{
+    const da=a.date.split('/').reverse().join('');
+    const db=b.date.split('/').reverse().join('');
+    return da.localeCompare(db);
+  };
+  $('tb-ue').innerHTML=[...R.ue].sort(sortByDateSingle).map(m=>`<tr>
     <td><span class="tag">${m.source}</span></td>
     <td>${m.date}</td><td>${m.dateValuta||''}</td>
     <td class="desc-cell" title="${esc(m.description)}">${m.description}</td>
     <td class="am dare">${m.dare?fmtN(m.dare):''}</td><td class="am avere">${m.avere?fmtN(m.avere):''}</td>
   </tr>`).join('');
 
-  $('tb-up').innerHTML=R.up.map(m=>`<tr>
+  $('tb-up').innerHTML=[...R.up].sort(sortByDateSingle).map(m=>`<tr>
     <td><span class="tag">${m.source}</span></td>
     <td>${m.date}</td>
     <td class="desc-cell" title="${esc(m.description)}">${m.description}</td>
@@ -1319,78 +1346,78 @@ async function downloadAnnotatedPDFs(){
 
     let pdfBytes;
 
-    // === Unified approach: PDF.js canvas render → grayscale → annotations on canvas → jsPDF ===
+    // === Canvas render → grayscale → annotations → jsPDF (optimized) ===
     {
-      log(fname+': rendering B&N via canvas'+(isEncrypted?' (criptato)':'')+'...');
+      log(fname+': rendering B&N'+(isEncrypted?' (criptato)':'')+'...');
       const pdfJs=await pdfjsLib.getDocument({data:fdata.bytes.slice(0)}).promise;
       const scale=1.5;
       const{jsPDF:JsPDF}=window.jspdf;
 
       const firstPg=await pdfJs.getPage(1);
-      const firstVp=firstPg.getViewport({scale:1});
+      const firstVp=firstPg.getViewport({scale});
       const doc=new JsPDF({
         orientation:firstVp.width>firstVp.height?'l':'p',
         unit:'pt', format:[firstVp.width,firstVp.height],
         compress:true
       });
 
+      // Helper: canvas to ArrayBuffer via toBlob (faster than toDataURL)
+      const canvasToAB=c=>new Promise(res=>{
+        c.toBlob(blob=>{const r=new FileReader();r.onload=()=>res(new Uint8Array(r.result));r.readAsArrayBuffer(blob)},'image/jpeg',0.88);
+      });
+
+      // Pre-index movements by page for fast lookup
+      const movsByPage={};
+      for(const m of movs){if(m._pgIdx!=null){if(!movsByPage[m._pgIdx])movsByPage[m._pgIdx]=[];movsByPage[m._pgIdx].push(m)}}
+
       for(let p=1;p<=pdfJs.numPages;p++){
         const pg=await pdfJs.getPage(p);
-        const vpNat=pg.getViewport({scale:1});
         const vp=pg.getViewport({scale});
 
-        if(p>1)doc.addPage([vpNat.width,vpNat.height]);
+        if(p>1)doc.addPage([vp.width,vp.height]);
 
-        // Render page to canvas
         const canvas=document.createElement('canvas');
         canvas.width=vp.width;canvas.height=vp.height;
         const ctx=canvas.getContext('2d');
         await pg.render({canvasContext:ctx,viewport:vp}).promise;
 
-        // Convert to grayscale
+        // Fast grayscale via Uint32Array
         const iData=ctx.getImageData(0,0,canvas.width,canvas.height);
-        const px=iData.data;
-        for(let k=0;k<px.length;k+=4){
-          const gray=Math.round(px[k]*0.299+px[k+1]*0.587+px[k+2]*0.114);
-          px[k]=gray;px[k+1]=gray;px[k+2]=gray;
+        const buf=new Uint8Array(iData.data.buffer);
+        for(let k=0,len=buf.length;k<len;k+=4){
+          const gray=(buf[k]*77+buf[k+1]*150+buf[k+2]*29)>>8;
+          buf[k]=gray;buf[k+1]=gray;buf[k+2]=gray;
         }
         ctx.putImageData(iData,0,0);
 
-        // Draw annotations directly on canvas (using globalAlpha for transparency)
-        const pgMovs=movs.filter(m=>m._pgIdx===p-1);
+        // Draw annotations on canvas
+        const pgMovs=movsByPage[p-1]||[];
         for(const m of pgMovs){
           const st=ecStatus[m._idx]||'none';
           const col=colors[st];
           if(m._oy==null){skipped++;continue;}
           const fh=m._oh||10;
-          // Convert bottom-up PDF coords to top-down canvas coords (scaled)
-          const cY=(vpNat.height-m._oy-fh-2)*scale;
+          const cY=(vp.height-m._oy*scale-fh*scale-2*scale);
           const cH=(fh+4)*scale;
           const r=Math.round(col.r*255),g=Math.round(col.g*255),b=Math.round(col.b*255);
 
-          // Semi-transparent full-width highlight
           ctx.globalAlpha=0.15;
           ctx.fillStyle='rgb('+r+','+g+','+b+')';
           ctx.fillRect(0,cY,canvas.width,cH);
-
-          // Opaque left bar
           ctx.globalAlpha=0.9;
           ctx.fillRect(0,cY,8*scale,cH);
-
           ctx.globalAlpha=1;
           annotated++;
         }
 
-        // Convert annotated canvas to image and add to PDF
-        const imgData=canvas.toDataURL('image/jpeg',0.88);
-        doc.addImage(imgData,'JPEG',0,0,vpNat.width,vpNat.height);
+        // Fast image add via blob
+        const imgBytes=await canvasToAB(canvas);
+        doc.addImage(imgBytes,'JPEG',0,0,vp.width,vp.height,undefined,'FAST');
       }
 
-      // Legend on last page (drawn via jsPDF text - no GState needed)
-      const lastPgVp=await pdfJs.getPage(pdfJs.numPages);
-      const lastVp=lastPgVp.getViewport({scale:1});
+      // Legend on last page
       doc.setFontSize(5);
-      const ly=lastVp.height-12;
+      const ly=firstVp.height-12;
       doc.setFillColor(33,150,84);doc.rect(10,ly,6,6,'F');
       doc.setTextColor(80,80,80);doc.text('Match Esatto',18,ly+4.5);
       doc.setFillColor(230,140,0);doc.rect(65,ly,6,6,'F');
@@ -1399,35 +1426,38 @@ async function downloadAnnotatedPDFs(){
       doc.text('Non Trovato',133,ly+4.5);
 
       pdfBytes=doc.output('arraybuffer');
-      log(fname+': '+annotated+' righe annotate (B&N + annotazioni), '+skipped+' saltate');
+      log(fname+': '+annotated+' righe annotate, '+skipped+' saltate');
     }
 
     prepared.push({fname,pdfBytes});
   }
 
   // Download: ZIP if multiple files, single PDF otherwise
+  // Use analysis name for file naming
+  const safeName=(S.analysisName||'Analisi').replace(/[^a-zA-Z0-9àèéìòùÀÈÉÌÒÙ _\-]/g,'').replace(/\s+/g,'_');
+
   if(prepared.length>1){
     log('Creazione archivio ZIP con '+prepared.length+' PDF...');
     const zip=new JSZip();
     for(const{fname,pdfBytes} of prepared){
-      zip.file('Annotato_'+fname,pdfBytes);
+      zip.file(safeName+'_'+fname,pdfBytes);
     }
     const zipBlob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
     const url=URL.createObjectURL(zipBlob);
     const a=document.createElement('a');
-    a.href=url;a.download='PDF_Annotati.zip';
+    a.href=url;a.download=safeName+'_Annotati.zip';
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    log('Scaricato: PDF_Annotati.zip ('+prepared.length+' file)');
+    log('Scaricato: '+safeName+'_Annotati.zip ('+prepared.length+' file)');
   }else if(prepared.length===1){
     const{fname,pdfBytes}=prepared[0];
     const blob=new Blob([pdfBytes],{type:'application/pdf'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download='Annotato_'+fname;
+    a.href=url;a.download=safeName+'_'+fname;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    log('Scaricato: Annotato_'+fname);
+    log('Scaricato: '+safeName+'_'+fname);
   }
   log('=== Download completato ===');
   }catch(err){alert('Errore annotazione PDF: '+err.message);console.error(err);}
