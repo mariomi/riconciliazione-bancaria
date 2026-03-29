@@ -1183,7 +1183,7 @@ async function downloadAnnotatedPDFs(){
       continue;
     }
 
-    const pdfDoc=await PDFDocument.load(fdata.bytes.slice(0));
+    const pdfDoc=await PDFDocument.load(fdata.bytes.slice(0),{ignoreEncryption:true});
     const pgs=pdfDoc.getPages();
     const movs=byFile[fname];
     let annotated=0,skipped=0;
