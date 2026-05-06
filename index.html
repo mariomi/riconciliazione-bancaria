@@ -23,7 +23,7 @@ html,body{height:100%}
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
 
 .nav-wrap{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
-.nav-inner{max-width:1500px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
+.nav-inner{max-width:1400px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:9px;font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:-0.5px;font-weight:400;line-height:1;color:var(--ink);text-decoration:none}
 .brand-mark{width:8px;height:8px;border-radius:50%;background:var(--ink);flex-shrink:0}
 .brand-text{display:inline}
@@ -39,14 +39,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .btn-outline:hover{background:var(--paper-2)}
 .btn-lg{padding:12px 22px;font-size:14px}
 
-.hero{max-width:1500px;margin:0 auto;padding:96px 32px 80px;text-align:center}
+.hero{max-width:1400px;margin:0 auto;padding:96px 32px 80px;text-align:center}
 .hero h1{font-family:'Instrument Serif',serif;font-size:72px;font-weight:400;line-height:1;letter-spacing:-2px;margin-bottom:24px}
 .hero h1 em{font-style:italic;color:var(--muted)}
 .hero p{color:var(--muted);font-size:17px;line-height:1.6;max-width:580px;margin:0 auto 36px}
 .hero-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .eyebrow{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);background:var(--paper-2);padding:6px 12px;border-radius:980px;margin-bottom:24px;border:1px solid var(--line)}
 
-.section{padding:96px 32px;max-width:1500px;margin:0 auto;border-top:1px solid var(--line)}
+.section{padding:96px 32px;max-width:1400px;margin:0 auto;border-top:1px solid var(--line)}
 .section-head{margin-bottom:48px;max-width:680px}
 .section-head.center{text-align:center;margin:0 auto 56px}
 .section-head h2{font-family:'Instrument Serif',serif;font-size:42px;font-weight:400;line-height:1.05;letter-spacing:-1.2px;margin-bottom:14px}
@@ -106,6 +106,42 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .mock-row .badge.g{background:var(--green-soft);color:var(--green)}
 .mock-row .badge.a{background:var(--amber-soft);color:var(--amber)}
 .mock-row .badge.r{background:var(--red-soft);color:var(--red)}
+
+/* Mock filter bar */
+.mock-filter{display:flex;align-items:center;gap:8px;margin:14px 0 10px;font-size:10.5px}
+.mock-filter .mf-pill{padding:5px 10px;background:var(--paper-2);border:1px solid var(--line);border-radius:980px;color:var(--muted);font-weight:500}
+.mock-filter .mf-input{flex:1;padding:5px 10px;border:1px solid var(--line);border-radius:6px;color:var(--muted-2)}
+.mock-filter .mf-btn{padding:5px 11px;background:var(--ink);color:#fff;border-radius:6px;font-weight:500;font-size:10px}
+.mock-filter .mf-btn.outline{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
+
+/* Mock match-table */
+.mock-section-head{display:flex;align-items:center;gap:8px;margin:14px 0 6px;font-size:11px;font-weight:600}
+.mock-section-head .dot{width:7px;height:7px;border-radius:50%}
+.mock-section-head .ct{color:var(--muted);font-weight:400;margin-left:4px;font-size:10.5px}
+
+.mock-tbl{width:100%;border-collapse:collapse;font-size:10.5px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.mock-tbl th{background:var(--paper-2);padding:8px 10px;text-align:left;font-weight:600;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.mock-tbl td{padding:8px 10px;border-top:1px solid var(--line);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
+.mock-tbl td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.mock-tbl td.num.pos{color:var(--green)}
+.mock-tbl td.num.neg{color:var(--red)}
+
+/* Mock annotated bank-statement */
+.mock-bank{font-family:'SF Mono',Menlo,monospace;font-size:9.5px;line-height:1.55;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:6px;padding:0;overflow:hidden}
+.mock-bank .row{display:flex;align-items:stretch;gap:0;border-bottom:1px solid #f3f1ec}
+.mock-bank .row:last-child{border-bottom:0}
+.mock-bank .bar{width:5px;flex-shrink:0}
+.mock-bank .bar.g{background:var(--green)}
+.mock-bank .bar.a{background:var(--amber)}
+.mock-bank .bar.r{background:var(--red)}
+.mock-bank .row.g{background:rgba(15,122,58,.06)}
+.mock-bank .row.a{background:rgba(163,93,0,.08)}
+.mock-bank .row.r{background:rgba(168,32,26,.06)}
+.mock-bank .cells{flex:1;display:flex;align-items:center;gap:10px;padding:5px 8px 5px 10px;min-width:0}
+.mock-bank .d{color:var(--muted);width:62px;flex-shrink:0}
+.mock-bank .desc{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#333}
+.mock-bank .priv{display:inline-block;background:#1a1a1a;border-radius:2px;height:9px;vertical-align:middle}
+.mock-bank .amt{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500;flex-shrink:0;width:64px;text-align:right}
 
 .mock-upload{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .mock-up-card{background:var(--paper-2);border:1px dashed var(--line-2);border-radius:8px;padding:24px 18px;text-align:center}
@@ -168,7 +204,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 /* Ultra-wide screens: use more horizontal space */
 @media(min-width:1900px){
-  .nav-inner,.hero,.section,.page-head{max-width:1720px}
+  .nav-inner,.hero,.section,.page-head{max-width:1600px}
 }
 </style>
 </head>
@@ -310,8 +346,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
       <div class="mock">
         <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">reconcilia.app/app · Risultati</div></div>
         <div class="mock-body">
-          <div class="mock-h1">Risultati<em>.</em></div>
-          <div class="mock-sub">Riepilogo del confronto tra movimenti dei partitari ed estratti conto.</div>
           <div class="mock-stats">
             <div class="mock-stat"><div class="mock-stat-num">806</div><div class="mock-stat-lbl">Mov. Partitario</div></div>
             <div class="mock-stat"><div class="mock-stat-num">801</div><div class="mock-stat-lbl">Mov. E/C</div></div>
@@ -319,9 +353,26 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
             <div class="mock-stat"><div class="mock-stat-num a">3</div><div class="mock-stat-lbl">Approssimativi</div></div>
             <div class="mock-stat"><div class="mock-stat-num r">0</div><div class="mock-stat-lbl">Non Trovati</div></div>
           </div>
-          <div class="mock-row"><div class="l"><span class="badge g">Match</span><span>03/01/2025 · BONIFICO O/C ISTITUTO CILIOTA</span></div><span style="font-weight:600">€ 192,15</span></div>
-          <div class="mock-row"><div class="l"><span class="badge g">Match</span><span>07/01/2025 · INCASSO TRAMITE P.O.S.</span></div><span style="font-weight:600">€ 424,30</span></div>
-          <div class="mock-row"><div class="l"><span class="badge a">Approx.</span><span>15/01/2025 · ADDEBITO MONTEPASCHI/WIDIBA</span></div><span style="font-weight:600">€ 75,50</span></div>
+          <div class="mock-filter">
+            <div class="mf-pill">Tutti i risultati ▾</div>
+            <div class="mf-input">Cerca descrizione…</div>
+            <div class="mf-btn">Scarica PDF Annotati</div>
+            <div class="mf-btn outline">Nuova analisi</div>
+          </div>
+          <div class="mock-section-head">
+            <span class="dot" style="background:var(--green)"></span>Match Esatti<span class="ct">(798)</span>
+          </div>
+          <table class="mock-tbl">
+            <thead>
+              <tr><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>13/01/25</td><td></td><td class="num neg">-39,00</td><td>13/01/25</td><td>67 ONERI BANCARI</td><td class="num neg">39,00</td></tr>
+              <tr><td>13/01/25</td><td>INCASSO TRAMITE P.O.S.</td><td class="num pos">+253,35</td><td>13/01/25</td><td>ACCR. POS/CC</td><td class="num pos">253,35</td></tr>
+              <tr><td>13/01/25</td><td></td><td class="num pos">+326,30</td><td>13/01/25</td><td>ACCR. POS/CC</td><td class="num pos">326,30</td></tr>
+              <tr><td>13/01/25</td><td>INCASSO TRAMITE P.O.S.</td><td class="num pos">+83,30</td><td>13/01/25</td><td>ACCR. POS/CC</td><td class="num pos">83,30</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -355,18 +406,26 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <div class="showcase-mock">
       <div class="mock">
         <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">EC_Q1_2025_annotato.pdf</div></div>
-        <div class="mock-body">
-          <div class="mock-pdf">
-            <div class="hl g">02/01 · 02/01/25 · INCASSO TRAMITE P.O.S. ........................ 288,60</div>
-            <div class="hl g">02/01 · 02/01/25 · BONIFICO O/C ISTITUTO CILIOTA ............ 192,15</div>
-            <div class="hl g">02/01 · 02/01/25 · INCASSO TRAMITE P.O.S. ........................ 132,50</div>
-            <div class="hl g">02/01 · 02/01/25 · BONIFICO O/C SOLEMARECIELO S.R.L. ... 161,17</div>
-            <div class="hl a">07/01 · 06/01/25 · ADDEBITO DIRETTO NEXI PAYMENTS ..... 154,49</div>
-            <div class="hl g">07/01 · 07/01/25 · BONIFICO SEPA MATTEO SISSI ............... 50,50</div>
-            <div class="hl g">07/01 · 07/01/25 · INCASSO TRAMITE P.O.S. ........................ 130,00</div>
-            <div class="hl r">08/01 · 31/12/24 · IMPOSTA DI BOLLO SU E/C ........................ 25,10</div>
-            <div class="hl g">10/01 · 10/01/25 · INCASSO TRAMITE P.O.S. .......................... 27,90</div>
-            <div class="hl g">13/01 · 13/01/25 · INCASSO TRAMITE P.O.S. ........................ 326,30</div>
+        <div class="mock-body" style="padding:16px">
+          <div class="mock-bank">
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">06/03 06/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">106,20</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">06/03 06/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:120px"></span></span><span class="amt">393,60</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">07/03 07/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">116,80</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">07/03 07/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">332,70</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">07/03 07/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:90px"></span></span><span class="amt">215,70</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 26/02/25</span><span class="desc">ASSEGNO N. 963022144</span><span class="amt">1.525,85</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">65,90</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">508,90</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">82,90</span></div></div>
+            <div class="row a"><div class="bar a"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:110px"></span></span><span class="amt">65,58</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">63,90</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">11/03 04/03/25</span><span class="desc">COMMISSIONI PER LAVORAZIONE EFFETTI <span class="priv" style="width:60px"></span></span><span class="amt">13,00</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">11/03 11/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">373,75</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">11/03 11/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">84,50</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">12/03 12/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">135,71</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">12/03 12/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">24,00</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">12/03 12/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:80px"></span></span><span class="amt">66,50</span></div></div>
+            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">13/03 13/03/25</span><span class="desc">GIROCONTO EFFETTI S.B.F. A MATURAZIONE</span><span class="amt">1.195,45</span></div></div>
           </div>
         </div>
       </div>
