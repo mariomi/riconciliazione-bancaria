@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reconcilia — Riconciliazione Bancaria</title>
+<title>Mach.bank — Riconciliazione Bancaria</title>
 <!-- AUTH GUARD (sync) — hide page until session is verified to avoid flash of content -->
 <style>html{visibility:hidden}html.auth-ok{visibility:visible}</style>
 <script>
@@ -111,6 +111,9 @@ body{
   background:var(--ink);
 }
 .brand em{font-style:italic}
+.brand-text{font-family:"Inter",-apple-system,sans-serif;font-weight:500;letter-spacing:-.4px}
+.brand-text strong{font-weight:700;color:var(--ink);font-style:normal}
+.brand-tld{font-weight:400;color:var(--muted);letter-spacing:-.3px}
 .brand-text{display:inline}
 
 .nav{display:flex;flex-direction:column;gap:1px}
@@ -1123,6 +1126,17 @@ td.avere{color:var(--green)}
           </div>
         </div>
 
+        <div class="settings-card">
+          <div class="settings-card-head">Privacy e dati</div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Salva risultati nello storico</strong>
+              <span>Quando attivo, le analisi vengono salvate nel tuo storico utente. Quando disattivato (default) niente viene memorizzato sui nostri server — solo i conteggi aggregati di quota.</span>
+            </div>
+            <label class="toggle"><input type="checkbox" id="toggle-history" onchange="onHistoryToggle(this.checked)"><span class="slider"></span></label>
+          </div>
+        </div>
+
         <div class="settings-card danger-card">
           <div class="settings-card-head">Zona pericolo</div>
           <div class="settings-row">
@@ -1144,7 +1158,7 @@ td.avere{color:var(--green)}
           <a href="#" onclick="window.CookieConsent&&window.CookieConsent.openPrefs();return false">Preferenze cookie</a>
           <a href="mailto:contact@netawebstest.com">Contatti</a>
         </div>
-        © 2026 Reconcilia · Riconciliazione bancaria automatica · Made by <a href="https://netawebs.net" target="_blank" rel="noopener">netawebs.net</a>
+        All rights reserved to <a href="https://www.netawebs.net" target="_blank" rel="noopener">Netawebs</a>
       </footer>
 
     </div>
@@ -1188,9 +1202,13 @@ async function loadProfileAndUsage(){
     .select('*',{count:'exact',head:true})
     .eq('user_id',u.id)
     .gte('created_at',startOfMonthISO());
-  CURRENT_COUNT=count||0;
+  // When history is disabled, DB count lags behind — use local counter as fallback
+  CURRENT_COUNT=Math.max(count||0, _readLocalCount());
   renderUsage();
   updBtn&&updBtn();
+  // Sync history toggle in Settings
+  const tog=document.getElementById('toggle-history');
+  if(tog)tog.checked=isHistoryEnabled();
 }
 
 function renderUsage(){
@@ -1218,7 +1236,33 @@ function renderUsage(){
   planEl.innerHTML='Piano <strong>'+(PLAN_LABEL[plan]||plan)+'</strong>';
 }
 
+// History toggle persistence (Settings → Privacy e dati)
+const HIST_KEY='reconcilia.history-enabled';
+function isHistoryEnabled(){return localStorage.getItem(HIST_KEY)==='1'}
+function setHistoryEnabled(v){localStorage.setItem(HIST_KEY,v?'1':'0')}
+
+// Local monthly counter (used when history is disabled — keeps quota client-side)
+function _monthKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function _localCountKey(){return 'reconcilia.count.'+_monthKey()}
+function _bumpLocalCount(){
+  const k=_localCountKey();
+  const n=parseInt(localStorage.getItem(k)||'0',10)+1;
+  localStorage.setItem(k,String(n));
+  return n;
+}
+function _readLocalCount(){return parseInt(localStorage.getItem(_localCountKey())||'0',10)}
+
+function onHistoryToggle(on){setHistoryEnabled(on)}
+
 async function recordAnalysis(){
+  // Always bump quota counter — both server (when ON) and local (always)
+  CURRENT_COUNT++;
+  _bumpLocalCount();
+  renderUsage();
+  if(typeof updBtn==='function')updBtn();
+
+  // DB insert ONLY when history is enabled
+  if(!isHistoryEnabled())return;
   try{
     const u=await window.AUTH.user();
     if(!u)return;
@@ -1234,9 +1278,6 @@ async function recordAnalysis(){
       num_match_approx:R.fuzzy.length,
       num_non_trovati:(R.ue?R.ue.length:0)+(R.up?R.up.length:0)
     });
-    CURRENT_COUNT++;
-    renderUsage();
-    if(typeof updBtn==='function')updBtn();
   }catch(e){console.error('record analysis failed',e);}
 }
 
