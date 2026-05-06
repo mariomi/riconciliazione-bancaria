@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reconcilia — Riconciliazione Bancaria Automatica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0a0a0a;--ink-2:#1a1a1a;
+  --paper:#fafaf7;--paper-2:#f1f0eb;
+  --line:#ebe9e2;--line-2:#dcd9cf;
+  --muted:#7a7770;--muted-2:#a8a59c;
+  --green:#0f7a3a;--green-soft:#e7f5ec;
+  --amber:#a35d00;--amber-soft:#fbf0dc;
+  --red:#a8201a;--red-soft:#fae9e7;
+  --r:10px;--r-sm:7px;
+}
+html,body{height:100%}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+
+.nav-wrap{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:-0.5px;font-weight:400;line-height:1;color:var(--ink);text-decoration:none}
+.brand-mark{width:8px;height:8px;border-radius:50%;background:var(--ink);flex-shrink:0}
+.brand-text{display:inline}
+.brand em{font-style:italic}
+.nav-links{display:flex;gap:6px;align-items:center}
+.nav-link{color:var(--muted);font-size:13.5px;font-weight:500;text-decoration:none;padding:8px 12px;border-radius:7px;transition:color .15s,background .15s}
+.nav-link:hover{color:var(--ink);background:var(--paper-2)}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:var(--ink-2)}
+.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
+.btn-outline:hover{background:var(--paper-2)}
+.btn-lg{padding:12px 22px;font-size:14px}
+
+.hero{max-width:1100px;margin:0 auto;padding:96px 32px 80px;text-align:center}
+.hero h1{font-family:'Instrument Serif',serif;font-size:72px;font-weight:400;line-height:1;letter-spacing:-2px;margin-bottom:24px}
+.hero h1 em{font-style:italic;color:var(--muted)}
+.hero p{color:var(--muted);font-size:17px;line-height:1.6;max-width:580px;margin:0 auto 36px}
+.hero-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.eyebrow{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);background:var(--paper-2);padding:6px 12px;border-radius:980px;margin-bottom:24px;border:1px solid var(--line)}
+
+.section{padding:96px 32px;max-width:1100px;margin:0 auto;border-top:1px solid var(--line)}
+.section-head{margin-bottom:48px;max-width:680px}
+.section-head.center{text-align:center;margin:0 auto 56px}
+.section-head h2{font-family:'Instrument Serif',serif;font-size:42px;font-weight:400;line-height:1.05;letter-spacing:-1.2px;margin-bottom:14px}
+.section-head h2 em{font-style:italic;color:var(--muted)}
+.section-head p{color:var(--muted);font-size:15px;max-width:560px}
+.section-head.center p{margin:0 auto}
+
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.feat{background:var(--paper);padding:28px 26px}
+.feat-icon{width:32px;height:32px;border-radius:8px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.feat-icon svg{width:16px;height:16px;color:var(--ink)}
+.feat h3{font-size:15px;font-weight:600;margin-bottom:6px;letter-spacing:-0.2px}
+.feat p{color:var(--muted);font-size:13.5px;line-height:1.55}
+
+.banks{display:flex;flex-wrap:wrap;gap:8px}
+.bank-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:980px;background:var(--paper);border:1px solid var(--line);font-size:12px;font-weight:500}
+.bank-dot{width:7px;height:7px;border-radius:50%}
+
+/* ===== HOW-IT-WORKS ===== */
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.step{background:var(--paper);padding:32px 28px}
+.step-num{font-family:'Instrument Serif',serif;font-size:36px;line-height:1;color:var(--muted-2);margin-bottom:18px;letter-spacing:-1px}
+.step h3{font-size:16px;font-weight:600;margin-bottom:8px;letter-spacing:-0.2px}
+.step p{color:var(--muted);font-size:13.5px;line-height:1.6}
+
+/* ===== SHOWCASE (mockup screens) ===== */
+.showcase{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:center;margin-bottom:96px}
+.showcase.flip{grid-template-columns:1.2fr 1fr}
+.showcase.flip .showcase-mock{order:-1}
+.showcase-text h3{font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;line-height:1.1;letter-spacing:-0.8px;margin-bottom:14px}
+.showcase-text h3 em{font-style:italic;color:var(--muted)}
+.showcase-text p{color:var(--muted);font-size:14.5px;line-height:1.6;margin-bottom:14px}
+.showcase-text ul{list-style:none;margin-top:18px}
+.showcase-text ul li{font-size:13.5px;color:var(--ink);padding:7px 0;display:flex;align-items:flex-start;gap:9px}
+.showcase-text ul li svg{width:14px;height:14px;color:var(--green);flex-shrink:0;margin-top:3px}
+
+.mock{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.06)}
+.mock-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+.mock-bar span{width:10px;height:10px;border-radius:50%;background:var(--line-2)}
+.mock-bar .mock-url{margin-left:8px;font-size:11px;color:var(--muted-2);font-family:'Inter',sans-serif}
+.mock-body{padding:30px 28px}
+.mock-h1{font-family:'Instrument Serif',serif;font-size:30px;line-height:1;letter-spacing:-0.5px;margin-bottom:6px}
+.mock-h1 em{font-style:italic;color:var(--muted)}
+.mock-sub{color:var(--muted);font-size:12px;margin-bottom:20px}
+
+.mock-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:18px}
+.mock-stat{background:var(--paper);padding:14px 12px;text-align:left}
+.mock-stat-num{font-family:'Instrument Serif',serif;font-size:30px;line-height:1;letter-spacing:-0.5px}
+.mock-stat-num.g{color:var(--green)}
+.mock-stat-num.a{color:var(--amber)}
+.mock-stat-num.r{color:var(--red)}
+.mock-stat-lbl{font-size:9.5px;color:var(--muted);margin-top:4px;letter-spacing:.2px}
+
+.mock-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:7px;margin-top:8px;font-size:11.5px}
+.mock-row .l{display:flex;align-items:center;gap:10px}
+.mock-row .badge{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:980px;text-transform:uppercase;letter-spacing:.4px}
+.mock-row .badge.g{background:var(--green-soft);color:var(--green)}
+.mock-row .badge.a{background:var(--amber-soft);color:var(--amber)}
+.mock-row .badge.r{background:var(--red-soft);color:var(--red)}
+
+.mock-upload{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.mock-up-card{background:var(--paper-2);border:1px dashed var(--line-2);border-radius:8px;padding:24px 18px;text-align:center}
+.mock-up-card strong{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.mock-up-card span{font-size:11px;color:var(--muted-2)}
+
+.mock-pdf{background:#fff;border:1px solid var(--line);border-radius:6px;padding:16px;font-family:'SF Mono',Menlo,monospace;font-size:10.5px;line-height:1.7;color:var(--ink);position:relative;overflow:hidden}
+.mock-pdf .hl{padding:1px 0;display:block;position:relative}
+.mock-pdf .hl::before{content:'';position:absolute;left:-16px;top:0;bottom:0;width:5px}
+.mock-pdf .hl.g{background:rgba(15,122,58,.08)}
+.mock-pdf .hl.g::before{background:var(--green)}
+.mock-pdf .hl.a{background:rgba(163,93,0,.08)}
+.mock-pdf .hl.a::before{background:var(--amber)}
+.mock-pdf .hl.r{background:rgba(168,32,26,.08)}
+.mock-pdf .hl.r::before{background:var(--red)}
+
+/* ===== STATS BIG ===== */
+.big-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:32px}
+.big-stat{padding:28px 22px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
+.big-stat-num{font-family:'Instrument Serif',serif;font-size:54px;line-height:1;letter-spacing:-1.5px;margin-bottom:6px}
+.big-stat-num em{font-style:italic;color:var(--muted)}
+.big-stat-lbl{color:var(--muted);font-size:13px;line-height:1.5}
+
+/* ===== TESTIMONIAL ===== */
+.testimonial{background:var(--paper-2);border-radius:var(--r);padding:48px 40px;margin-top:24px}
+.testimonial blockquote{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;line-height:1.4;letter-spacing:-0.4px;color:var(--ink);margin-bottom:18px}
+.testimonial blockquote em{font-style:italic;color:var(--muted)}
+.testimonial cite{font-style:normal;font-size:13px;color:var(--muted)}
+.testimonial cite strong{color:var(--ink);font-weight:600}
+
+/* ===== CTA ===== */
+.final-cta{margin:32px 0 0;padding:64px 32px;background:var(--ink);color:#fff;border-radius:var(--r);text-align:center}
+.final-cta h2{font-family:'Instrument Serif',serif;font-size:44px;font-weight:400;line-height:1.05;letter-spacing:-1.2px;margin-bottom:14px}
+.final-cta h2 em{font-style:italic;color:rgba(255,255,255,.6)}
+.final-cta p{color:rgba(255,255,255,.7);font-size:15px;max-width:480px;margin:0 auto 28px}
+.final-cta .btn{background:#fff;color:var(--ink)}
+.final-cta .btn:hover{background:rgba(255,255,255,.92)}
+
+/* ===== FOOTER ===== */
+.footer{border-top:1px solid var(--line);padding:48px 32px;text-align:center;color:var(--muted);font-size:13px}
+.footer a{color:var(--ink);text-decoration:none;font-weight:500}
+.footer a:hover{text-decoration:underline}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:14px;font-size:13px}
+.footer-links a{color:var(--muted);font-weight:500;text-decoration:none}
+.footer-links a:hover{color:var(--ink)}
+.footer-made{margin-top:8px;font-size:12px}
+
+@media (max-width:768px){
+  .hero{padding:64px 24px 56px}
+  .hero h1{font-size:48px;letter-spacing:-1.5px}
+  .section{padding:64px 24px}
+  .section-head h2{font-size:32px}
+  .features,.steps-grid,.big-stats{grid-template-columns:1fr}
+  .showcase,.showcase.flip{grid-template-columns:1fr;gap:24px}
+  .showcase.flip .showcase-mock{order:0}
+  .mock-stats{grid-template-columns:repeat(2,1fr)}
+  .nav-links a:not(.btn){display:none}
+  .final-cta h2{font-size:32px}
+}
+</style>
+</head>
+<body>
+
+<div class="nav-wrap">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="brand-mark"></span><span class="brand-text">Reconcil<em>i</em>a</span></a>
+    <nav class="nav-links">
+      <a href="#features" class="nav-link">Funzionalità</a>
+      <a href="pricing.html" class="nav-link">Prezzi</a>
+      <a href="faq.html" class="nav-link">FAQ</a>
+      <a href="login.html" class="btn btn-outline">Accedi</a>
+      <a href="login.html?mode=signup" class="btn btn-primary">Inizia gratis</a>
+    </nav>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="eyebrow">Riconciliazione bancaria automatica</span>
+  <h1>Riconcilia partitari ed<br>estratti conto in <em>un click</em>.</h1>
+  <p>Reconcilia confronta automaticamente i movimenti del partitario con quelli dell'estratto conto. Carica i PDF, ottieni i match, scarica i report annotati con i match già evidenziati. Tutto in locale, niente upload sui nostri server.</p>
+  <div class="hero-actions">
+    <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Crea un account gratis</a>
+    <a href="pricing.html" class="btn btn-outline btn-lg">Vedi i prezzi</a>
+  </div>
+  <div class="banks" style="justify-content:center;margin-top:40px">
+    <span class="bank-pill"><span class="bank-dot" style="background:#10613A"></span>Intesa Sanpaolo</span>
+    <span class="bank-pill"><span class="bank-dot" style="background:#003B7E"></span>Volksbank</span>
+    <span class="bank-pill"><span class="bank-dot" style="background:#006B3F"></span>Banca della Marca</span>
+    <span class="bank-pill"><span class="bank-dot" style="background:#E4002B"></span>Banco BPM</span>
+    <span class="bank-pill"><span class="bank-dot" style="background:#8B1A1A"></span>Monte dei Paschi</span>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-head">
+    <h2>Tutto quello che ti serve per <em>chiudere</em> il mese.</h2>
+    <p>Parser nativi per cinque banche italiane, matching intelligente per data e importo, export in PDF annotati. Senza fogli Excel.</p>
+  </div>
+  <div class="features">
+    <div class="feat">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <h3>Parser nativi PDF</h3>
+      <p>Cinque banche italiane supportate, anche i PDF criptati di Intesa Sanpaolo. Niente OCR, niente errori di lettura.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h3>Match automatico</h3>
+      <p>Confronto per importo e data con tolleranza configurabile. Match esatti, approssimativi e voci non trovate, separati e ordinati.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+      <h3>Report con match evidenziati</h3>
+      <p>Scarica gli estratti conto e i partitari originali con un evidenziatore colorato su ogni riga: verde, arancione, rosso. Pronti da archiviare.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <h3>Privacy by design</h3>
+      <p>Tutto il parsing avviene nel tuo browser. I PDF non vengono mai caricati su server esterni. Solo le credenziali sono salvate.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <h3>Veloce davvero</h3>
+      <p>Un'analisi completa in pochi secondi. PDF annotati con annotazione vettoriale, leggeri e con testo selezionabile.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div>
+      <h3>Multi-file in batch</h3>
+      <p>Carica tutti i partitari e gli estratti conto del trimestre insieme. Un nome di analisi, un click, ZIP scaricato.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-head center">
+    <h2>Come <em>funziona</em>.</h2>
+    <p>Tre passaggi. Dal PDF al report con i match evidenziati, in meno di un minuto.</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Carica i PDF</h3>
+      <p>Trascina partitari (dalla contabilità) ed estratti conto (dalla banca) nelle due aree. Più file insieme — anche un trimestre intero. La banca emittente viene riconosciuta in automatico.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Avvia l'analisi</h3>
+      <p>Reconcilia estrae i movimenti, confronta importi e date con tolleranza intelligente, e classifica ogni riga come match esatto, approssimativo, o non trovato. Niente regole da configurare.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Scarica i report</h3>
+      <p>Visualizza i risultati nella tabella, oppure scarica lo ZIP con i tuoi PDF originali — partitari ed estratti — annotati con i match già evidenziati a colori. Pronti per il dossier o il cliente.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE: UPLOAD -->
+<section class="section">
+  <div class="showcase">
+    <div class="showcase-text">
+      <h3>Carica i file. <em>Tutto qui</em>.</h3>
+      <p>Trascina i tuoi PDF nelle aree dedicate. Reconcilia rileva automaticamente la banca emittente per ogni estratto conto e prepara l'analisi.</p>
+      <p>Nessuna configurazione di colonne, nessun mapping da impostare. Funziona out-of-the-box con i formati standard delle cinque banche supportate, inclusi i PDF criptati di Intesa Sanpaolo e i layout multi-pagina di Monte dei Paschi.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Drag &amp; drop multi-file</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Rilevamento automatico della banca</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Nessuna configurazione richiesta</li>
+      </ul>
+    </div>
+    <div class="showcase-mock">
+      <div class="mock">
+        <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">reconcilia.app/app · Nuova analisi</div></div>
+        <div class="mock-body">
+          <div class="mock-h1">Nuova <em>analisi</em>.</div>
+          <div class="mock-sub">Carica i file. La banca viene rilevata automaticamente.</div>
+          <div class="mock-upload">
+            <div class="mock-up-card"><strong>Partitari</strong><span>Trascina o clicca per selezionare</span></div>
+            <div class="mock-up-card"><strong>Estratti Conto</strong><span>Trascina — banca rilevata in automatico</span></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <span style="font-size:11px;color:var(--muted-2);align-self:center">Cancella tutto</span>
+            <span style="background:var(--ink);color:#fff;font-size:11px;font-weight:500;padding:8px 16px;border-radius:7px">Avvia analisi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE: RESULTS -->
+<section class="section" style="border-top:0;padding-top:0">
+  <div class="showcase flip">
+    <div class="showcase-mock">
+      <div class="mock">
+        <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">reconcilia.app/app · Risultati</div></div>
+        <div class="mock-body">
+          <div class="mock-h1">Risultati<em>.</em></div>
+          <div class="mock-sub">Riepilogo del confronto tra movimenti dei partitari ed estratti conto.</div>
+          <div class="mock-stats">
+            <div class="mock-stat"><div class="mock-stat-num">806</div><div class="mock-stat-lbl">Mov. Partitario</div></div>
+            <div class="mock-stat"><div class="mock-stat-num">801</div><div class="mock-stat-lbl">Mov. E/C</div></div>
+            <div class="mock-stat"><div class="mock-stat-num g">798</div><div class="mock-stat-lbl">Match Esatti</div></div>
+            <div class="mock-stat"><div class="mock-stat-num a">3</div><div class="mock-stat-lbl">Approssimativi</div></div>
+            <div class="mock-stat"><div class="mock-stat-num r">0</div><div class="mock-stat-lbl">Non Trovati</div></div>
+          </div>
+          <div class="mock-row"><div class="l"><span class="badge g">Match</span><span>03/01/2025 · BONIFICO O/C ISTITUTO CILIOTA</span></div><span style="font-weight:600">€ 192,15</span></div>
+          <div class="mock-row"><div class="l"><span class="badge g">Match</span><span>07/01/2025 · INCASSO TRAMITE P.O.S.</span></div><span style="font-weight:600">€ 424,30</span></div>
+          <div class="mock-row"><div class="l"><span class="badge a">Approx.</span><span>15/01/2025 · ADDEBITO MONTEPASCHI/WIDIBA</span></div><span style="font-weight:600">€ 75,50</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="showcase-text">
+      <h3>Risultati <em>chiari</em>, subito.</h3>
+      <p>La dashboard ti mostra in un colpo d'occhio quanti movimenti ha il partitario, quanti l'estratto conto, e come sono stati classificati: match esatti in verde, approssimativi in arancione, non trovati in rosso.</p>
+      <p>Filtra per tipo di match, cerca nella descrizione, ordina per data o importo. Tutto in tempo reale, senza ricaricare nulla.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Statistiche aggregate immediate</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tabelle filtrabili e ricercabili</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Dettaglio per ogni movimento</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE: ANNOTATED PDF -->
+<section class="section" style="border-top:0;padding-top:0">
+  <div class="showcase">
+    <div class="showcase-text">
+      <h3>Scarica i report con i <em>match segnati</em>.</h3>
+      <p>Il vero superpotere: con un click scarichi uno ZIP con i tuoi PDF originali (sia partitari che estratti conto), ognuno con un evidenziatore colorato su ogni riga di movimento.</p>
+      <p><strong>Verde</strong> per i match esatti, <strong>arancione</strong> per gli approssimativi, <strong>rosso</strong> per le voci che non hanno trovato corrispondenza. Il testo resta selezionabile, le pagine restano leggere.</p>
+      <p>Allegali al dossier, mandali al cliente, archiviali con il resto della documentazione del trimestre. La riconciliazione diventa visibile, non più un foglio Excel da reinterpretare.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PDF originali, non immagini</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Annotazione vettoriale, leggera</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>ZIP unico, partitari + estratti conto</li>
+      </ul>
+    </div>
+    <div class="showcase-mock">
+      <div class="mock">
+        <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">EC_Q1_2025_annotato.pdf</div></div>
+        <div class="mock-body">
+          <div class="mock-pdf">
+            <div class="hl g">02/01 · 02/01/25 · INCASSO TRAMITE P.O.S. ........................ 288,60</div>
+            <div class="hl g">02/01 · 02/01/25 · BONIFICO O/C ISTITUTO CILIOTA ............ 192,15</div>
+            <div class="hl g">02/01 · 02/01/25 · INCASSO TRAMITE P.O.S. ........................ 132,50</div>
+            <div class="hl g">02/01 · 02/01/25 · BONIFICO O/C SOLEMARECIELO S.R.L. ... 161,17</div>
+            <div class="hl a">07/01 · 06/01/25 · ADDEBITO DIRETTO NEXI PAYMENTS ..... 154,49</div>
+            <div class="hl g">07/01 · 07/01/25 · BONIFICO SEPA MATTEO SISSI ............... 50,50</div>
+            <div class="hl g">07/01 · 07/01/25 · INCASSO TRAMITE P.O.S. ........................ 130,00</div>
+            <div class="hl r">08/01 · 31/12/24 · IMPOSTA DI BOLLO SU E/C ........................ 25,10</div>
+            <div class="hl g">10/01 · 10/01/25 · INCASSO TRAMITE P.O.S. .......................... 27,90</div>
+            <div class="hl g">13/01 · 13/01/25 · INCASSO TRAMITE P.O.S. ........................ 326,30</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG STATS -->
+<section class="section" style="border-top:0;padding-top:0">
+  <div class="section-head center">
+    <h2>Numeri che <em>parlano</em>.</h2>
+    <p>Tempo risparmiato e affidabilità verificate sul campo da commercialisti e controller italiani.</p>
+  </div>
+  <div class="big-stats">
+    <div class="big-stat">
+      <div class="big-stat-num">99,6<em>%</em></div>
+      <div class="big-stat-lbl">match automatici corretti su movimenti standard, verificati su oltre 800 transazioni reali per trimestre.</div>
+    </div>
+    <div class="big-stat">
+      <div class="big-stat-num">~30<em>s</em></div>
+      <div class="big-stat-lbl">il tempo medio per processare un trimestre completo: 4 estratti conto e 1 partitario, fino a 1.000 movimenti.</div>
+    </div>
+    <div class="big-stat">
+      <div class="big-stat-num">5<em> banche</em></div>
+      <div class="big-stat-lbl">parser nativi per Intesa Sanpaolo, Banco BPM, Monte dei Paschi, Volksbank, Banca della Marca. Altre in arrivo.</div>
+    </div>
+  </div>
+
+  <div class="testimonial">
+    <blockquote>Da una mattinata intera di copia-incolla in Excel al tempo di un <em>caffè</em>. I PDF annotati possono essere allegati direttamente al dossier del cliente, senza ulteriori passaggi.</blockquote>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="section" style="border-top:0;padding-top:0">
+  <div class="final-cta">
+    <h2>Pronto per la <em>prossima analisi</em>?</h2>
+    <p>Crea un account gratuito in 30 secondi. Nessuna carta richiesta.</p>
+    <a href="login.html?mode=signup" class="btn btn-lg">Inizia gratis</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="pricing.html">Prezzi</a>
+    <a href="faq.html">FAQ</a>
+    <a href="login.html">Accedi</a>
+    <a href="terms.html">Termini</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="cookie.html">Cookie</a>
+    <a href="#" onclick="window.CookieConsent&&window.CookieConsent.openPrefs();return false">Preferenze cookie</a>
+  </div>
+  <div>© 2026 Reconcilia · Riconciliazione bancaria automatica</div>
+  <div class="footer-made">Made by <a href="https://netawebs.net" target="_blank" rel="noopener">netawebs.net</a></div>
+</footer>
+
+<script defer src="cookie-banner.js"></script>
+</body>
+</html>

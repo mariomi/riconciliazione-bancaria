@@ -1,0 +1,2759 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reconcilia — Riconciliazione Bancaria</title>
+<!-- AUTH GUARD (sync) — hide page until session is verified to avoid flash of content -->
+<style>html{visibility:hidden}html.auth-ok{visibility:visible}</style>
+<script>
+(function(){
+  var key='sb-vboflwsbwllbdidifxzq-auth-token';
+  if(!localStorage.getItem(key)){window.location.replace('login.html');}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script src="pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc='pdf.worker.min.js';</script>
+<script src="jspdf.umd.min.js"></script>
+<script src="jspdf.plugin.autotable.min.js"></script>
+<script src="pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0a0a0a;
+  --ink-2:#1a1a1a;
+  --paper:#fafaf7;
+  --paper-2:#f1f0eb;
+  --line:#ebe9e2;
+  --line-2:#dcd9cf;
+  --muted:#7a7770;
+  --muted-2:#a8a59c;
+  --accent:#0a0a0a;
+  --green:#0f7a3a;
+  --green-soft:#e7f5ec;
+  --amber:#a35d00;
+  --amber-soft:#fbf0dc;
+  --red:#a8201a;
+  --red-soft:#fae9e7;
+  --r:10px;
+  --r-sm:7px;
+}
+html[data-theme="dark"]{
+  --ink:#f1efe8;
+  --ink-2:#fafaf7;
+  --paper:#0e0e0d;
+  --paper-2:#1a1a18;
+  --line:#2a2a26;
+  --line-2:#3a3a35;
+  --muted:#a09c92;
+  --muted-2:#6a665e;
+  --accent:#f1efe8;
+  --green:#5cc88a;
+  --green-soft:rgba(92,200,138,.12);
+  --amber:#e3a93b;
+  --amber-soft:rgba(227,169,59,.12);
+  --red:#e87370;
+  --red-soft:rgba(232,115,112,.12);
+}
+html[data-density="compact"] .topbar{padding:12px 32px}
+html[data-density="compact"] .content{padding:28px 32px 60px}
+html[data-density="compact"] .page-head{margin-bottom:28px}
+html[data-density="compact"] .section{padding-top:28px}
+html[data-density="compact"] .settings-row{padding:12px 18px}
+
+html,body{height:100%}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:-0.005em;
+}
+
+/* ===== APP LAYOUT ===== */
+.app{display:flex;min-height:100vh}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:220px;
+  padding:28px 18px;
+  display:flex;
+  flex-direction:column;
+  position:sticky;
+  top:0;
+  height:100vh;
+  flex-shrink:0;
+  border-right:1px solid var(--line);
+}
+.brand{
+  display:flex;align-items:center;gap:9px;
+  padding:0 8px 28px;
+  font-family:'Instrument Serif',serif;
+  font-size:22px;letter-spacing:-0.5px;
+  font-weight:400;line-height:1;
+}
+.brand-mark{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--ink);
+}
+.brand em{font-style:italic}
+.brand-text{display:inline}
+
+.nav{display:flex;flex-direction:column;gap:1px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:8px 10px;border-radius:7px;
+  color:var(--muted);font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:color .15s,background .15s;
+  border:0;background:transparent;width:100%;text-align:left;
+  font-family:inherit;
+}
+.nav-item:hover{color:var(--ink);background:var(--paper-2)}
+.nav-item.active{color:var(--ink);background:var(--paper-2);font-weight:600}
+.nav-icon{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.nav-item.active .nav-icon{opacity:1}
+
+.nav-divider{height:1px;background:var(--line);margin:18px 8px}
+.sidebar-foot{margin-top:auto;padding:0 10px;font-size:11px;color:var(--muted-2);letter-spacing:.5px}
+.app-footer{margin-top:80px;padding:24px 0 8px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center}
+.app-footer a{color:var(--ink);text-decoration:none;font-weight:500}
+.app-footer a:hover{text-decoration:underline}
+
+/* ===== MAIN ===== */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 40px;
+  border-bottom:1px solid var(--line);
+  background:var(--paper);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:14px;font-weight:600;color:var(--ink)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.plan-badge{
+  font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;
+  padding:3px 9px;border-radius:980px;
+  background:var(--paper-2);color:var(--ink);border:1px solid var(--line);
+}
+.plan-badge.plan-pro{background:var(--ink);color:#fff;border-color:var(--ink)}
+.plan-badge.plan-pro_plus{background:var(--amber);color:#fff;border-color:var(--amber)}
+.plan-badge.plan-business{background:var(--green);color:#fff;border-color:var(--green)}
+
+.usage-card{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 26px;display:flex;align-items:center;justify-content:space-between;
+  gap:18px;margin-bottom:28px;
+}
+.usage-left .usage-label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
+.usage-left .usage-num{font-family:'Instrument Serif',serif;font-size:42px;line-height:1;letter-spacing:-1px;color:var(--ink)}
+.usage-left .usage-num small{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);margin-left:6px;font-weight:400}
+.usage-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.usage-right .usage-meta{font-size:12px;color:var(--muted)}
+.usage-bar{width:160px;height:5px;background:var(--paper-2);border-radius:980px;overflow:hidden}
+.usage-bar-fill{height:100%;background:var(--ink);border-radius:980px;transition:width .3s}
+.usage-bar-fill.warn{background:var(--amber)}
+.usage-bar-fill.full{background:var(--red)}
+
+.quota-banner{
+  background:var(--red-soft);border:1px solid rgba(168,32,26,.25);color:var(--red);
+  padding:14px 18px;border-radius:var(--rs);margin-bottom:18px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:13.5px;
+}
+.quota-banner strong{font-weight:600}
+.quota-banner .btn{background:var(--red);color:#fff;border:0;flex-shrink:0}
+.quota-banner .btn:hover{background:#8b1a14}
+
+/* When quota is reached, lock upload UI: only the banner remains active */
+#v-upload.locked .upload-grid,
+#v-upload.locked .analysis-card,
+#v-upload.locked .progress-wrap,
+#v-upload.locked .log-area{
+  opacity:.4;
+  pointer-events:none;
+  filter:grayscale(.3);
+  user-select:none;
+}
+#v-upload.locked .drop-zone input[type=file]{display:none}
+
+.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:32px}
+.price-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:32px 26px;display:flex;flex-direction:column;position:relative}
+.price-card.featured{border-color:var(--ink);box-shadow:0 4px 20px rgba(0,0,0,.05)}
+.price-card.current{background:var(--green-soft);border-color:rgba(15,122,58,.3)}
+.price-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:10px;font-weight:600;padding:4px 12px;border-radius:980px;letter-spacing:.6px;text-transform:uppercase}
+.price-badge.current{background:var(--green)}
+.price-tier{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+.price-amount{font-family:'Instrument Serif',serif;font-size:48px;line-height:1;letter-spacing:-1px;margin-bottom:6px}
+.price-amount em{font-style:italic;color:var(--muted)}
+.price-per{font-size:13px;color:var(--muted);margin-bottom:24px}
+.price-feats{list-style:none;flex:1;margin-bottom:24px}
+.price-feats li{font-size:13.5px;color:var(--ink);padding:7px 0;display:flex;align-items:flex-start;gap:9px;border-bottom:1px solid var(--line)}
+.price-feats li:last-child{border-bottom:0}
+.price-feats li svg{width:14px;height:14px;color:var(--green);flex-shrink:0;margin-top:2px}
+.price-feats li.muted{color:var(--muted-2)}
+.price-feats li.muted svg{color:var(--muted-2)}
+@media(max-width:1100px){.pricing-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.pricing-grid{grid-template-columns:1fr}}
+
+.content{padding:48px 40px 80px;max-width:1200px;width:100%}
+
+/* ===== SECTIONS ===== */
+.section{display:none}
+.section.on{display:block}
+
+/* ===== PAGE HEADER ===== */
+.page-head{margin-bottom:48px;max-width:680px}
+.page-head h1{
+  font-family:'Instrument Serif',serif;
+  font-size:48px;font-weight:400;line-height:1.05;
+  letter-spacing:-1.5px;margin-bottom:14px;
+}
+.page-head h1 em{font-style:italic;color:var(--muted)}
+.page-head p{color:var(--muted);font-size:15px;line-height:1.55;max-width:560px}
+.page-head .actions{display:flex;gap:10px;margin-top:24px}
+
+/* ===== BUTTONS ===== */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border:none;
+  border-radius:7px;
+  font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+  font-family:inherit;
+}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:var(--ink-2)}
+.btn-primary:disabled{background:var(--muted-2);cursor:not-allowed}
+.btn-secondary{background:transparent;color:var(--muted);padding:9px 14px}
+.btn-secondary:hover{color:var(--ink)}
+.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
+.btn-outline:hover{border-color:var(--ink);background:#fff}
+.btn-sm{font-size:12.5px;padding:7px 14px}
+
+/* ===== DASHBOARD ===== */
+.simple-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:32px;
+  padding-top:8px;
+  border-top:1px solid var(--line);
+}
+.simple-grid-block h3{
+  font-size:13px;font-weight:600;
+  margin-bottom:16px;
+  letter-spacing:.2px;
+}
+.simple-list{display:flex;flex-direction:column;gap:1px}
+.simple-list-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0;
+  border-bottom:1px solid var(--line);
+  font-size:13.5px;
+}
+.simple-list-item:last-child{border-bottom:0}
+.simple-list-item .item-left{display:flex;align-items:center;gap:12px}
+.simple-list-item .bank-dot{width:8px;height:8px;border-radius:2px}
+.simple-list-item .item-meta{font-size:12px;color:var(--muted);font-weight:400}
+.simple-list-item .item-name{font-weight:500}
+
+.steps{display:flex;flex-direction:column;gap:20px}
+.step{display:flex;align-items:flex-start;gap:14px;font-size:13.5px}
+.step-num{
+  flex-shrink:0;
+  width:22px;height:22px;border-radius:6px;
+  background:var(--paper-2);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;
+  font-variant-numeric:tabular-nums;
+}
+.step-text strong{display:block;font-weight:500;margin-bottom:2px}
+.step-text span{color:var(--muted);font-size:12.5px;line-height:1.5}
+
+/* ===== UPLOAD ===== */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.upload-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+.upload-card-header{
+  padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--line);
+}
+.upload-card-header h2{font-size:13px;font-weight:600}
+.upload-card-header .badge{
+  font-size:11px;font-weight:500;color:var(--muted);
+}
+.drop-zone{
+  margin:14px;
+  border:1px dashed var(--line-2);
+  border-radius:var(--r-sm);
+  padding:36px 20px;text-align:center;
+  cursor:pointer;transition:all .15s;
+  position:relative;
+  background:var(--paper);
+}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--ink);background:var(--paper-2)}
+.drop-zone .label{font-size:13.5px;font-weight:500;margin-bottom:4px}
+.drop-zone .hint{font-size:12px;color:var(--muted)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-list{padding:0 14px 14px;max-height:220px;overflow-y:auto}
+.file-list:empty{display:none}
+.file-item{
+  display:flex;align-items:center;
+  padding:8px 12px;
+  background:var(--paper);
+  border-radius:var(--r-sm);
+  margin-bottom:4px;font-size:12.5px;gap:8px;
+}
+.file-item:last-child{margin-bottom:0}
+.file-item .name{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item .bank{color:var(--muted);font-weight:500;font-size:11px}
+.file-item .status{font-size:10.5px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:.2px}
+.status.ok{background:var(--green-soft);color:var(--green)}
+.status.ld{background:var(--amber-soft);color:var(--amber)}
+.status.er{background:var(--red-soft);color:var(--red)}
+.file-item .remove{
+  background:0;border:0;color:var(--muted-2);cursor:pointer;
+  font-size:16px;padding:0 4px;line-height:1;
+}
+.file-item .remove:hover{color:var(--red)}
+
+/* ===== ANALYSIS CARD ===== */
+.analysis-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:20px;
+  margin-bottom:16px;
+}
+.analysis-field{margin-bottom:18px}
+.analysis-label{
+  display:block;font-size:12px;font-weight:500;
+  color:var(--muted);margin-bottom:8px;
+}
+.analysis-input{
+  width:100%;padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:var(--r-sm);
+  font-size:13.5px;background:var(--paper);
+  color:var(--ink);outline:none;
+  transition:border-color .15s;
+  font-family:inherit;
+}
+.analysis-input:focus{border-color:var(--ink);background:#fff}
+.analysis-input::placeholder{color:var(--muted-2)}
+.analysis-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* ===== PROGRESS ===== */
+.progress-wrap{margin-bottom:16px;display:none;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.progress-wrap.on{display:block}
+.progress-bar{height:3px;background:var(--paper-2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--ink);border-radius:2px;transition:width .3s}
+.progress-text{font-size:12px;color:var(--muted);margin-top:8px}
+
+/* ===== STATS ===== */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:0;
+  border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;
+  margin-bottom:28px;
+  background:#fff;
+}
+.stat-card{padding:20px;border-right:1px solid var(--line)}
+.stat-card:last-child{border-right:0}
+.stat-value{font-size:30px;font-weight:500;letter-spacing:-1px;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+.stat-value.green{color:var(--green)}
+.stat-value.orange{color:var(--amber)}
+.stat-value.red{color:var(--red)}
+.stat-label{font-size:11.5px;color:var(--muted);margin-top:8px}
+
+/* ===== PANEL ===== */
+.panel{
+  background:#fff;border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;
+  margin-bottom:14px;
+}
+
+/* ===== TABLES ===== */
+.table-wrap{overflow-x:auto}
+.table-scroll{max-height:520px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{
+  background:#fff;color:var(--muted);
+  padding:10px 14px;text-align:left;
+  font-weight:500;font-size:11px;
+  letter-spacing:.2px;
+  white-space:nowrap;position:sticky;top:0;z-index:1;
+  border-bottom:1px solid var(--line);
+}
+tbody tr{border-bottom:1px solid var(--line)}
+tbody tr:last-child{border-bottom:0}
+tbody tr:hover{background:var(--paper)}
+tbody td{padding:10px 14px;vertical-align:top}
+td.am{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;white-space:nowrap;font-weight:500}
+td.dare{color:var(--red)}
+td.avere{color:var(--green)}
+.desc-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ===== TAGS ===== */
+.tag{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:var(--paper-2);color:var(--muted)}
+
+/* ===== SUB SECTION ===== */
+.sub-section-head{
+  display:flex;align-items:center;gap:10px;
+  padding:24px 0 12px;
+}
+.section-dot{width:6px;height:6px;border-radius:50%}
+.sub-section-head h3{font-size:13px;font-weight:600}
+.section-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ===== FILTERS ===== */
+.filter-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-select,.filter-input{
+  padding:8px 12px;border:1px solid var(--line);
+  border-radius:var(--r-sm);font-size:12.5px;
+  background:#fff;color:var(--ink);outline:none;
+  transition:border-color .15s;font-family:inherit;
+}
+.filter-select:focus,.filter-input:focus{border-color:var(--ink)}
+.filter-input{width:240px}
+
+/* ===== LOG ===== */
+.log-area{
+  margin-bottom:16px;max-height:120px;overflow-y:auto;
+  background:var(--ink);color:#86d993;
+  border-radius:var(--r);padding:12px 14px;
+  font-family:ui-monospace,Menlo,monospace;font-size:11px;
+  line-height:1.6;display:none;
+}
+.log-area.on{display:block}
+
+/* ===== BANKS PAGE ===== */
+.banks-list{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  overflow:hidden;
+  margin-bottom:24px;
+}
+.bank-row{
+  padding:20px 24px;
+  display:flex;align-items:center;gap:20px;
+  border-bottom:1px solid var(--line);
+}
+.bank-row:last-child{border-bottom:0}
+.bank-mark{
+  width:10px;height:10px;border-radius:3px;flex-shrink:0;
+}
+.bank-row-text{flex:1;min-width:0}
+.bank-row-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.bank-row-region{font-size:12px;color:var(--muted)}
+.bank-row-features{
+  display:flex;gap:14px;font-size:12px;color:var(--muted);
+  flex-wrap:wrap;justify-content:flex-end;
+}
+
+/* ===== HELP ===== */
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
+.help-card{
+  background:#fff;border:1px solid var(--line);
+  border-radius:var(--r);padding:22px;
+}
+.help-card h3{font-size:14px;font-weight:600;margin-bottom:6px}
+.help-card p{font-size:13px;color:var(--muted);line-height:1.55}
+
+.faq{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-item:last-child{border-bottom:0}
+.faq-q{
+  width:100%;text-align:left;
+  padding:16px 22px;background:#fff;
+  border:0;cursor:pointer;
+  font-size:13.5px;font-weight:500;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:inherit;color:var(--ink);
+  transition:background .15s;
+}
+.faq-q:hover{background:var(--paper)}
+.faq-q .chev{transition:transform .2s;color:var(--muted-2)}
+.faq-item.open .faq-q .chev{transform:rotate(180deg)}
+.faq-a{
+  padding:0 22px;
+  max-height:0;overflow:hidden;
+  font-size:13px;color:var(--muted);line-height:1.6;
+  transition:max-height .25s,padding .25s;
+}
+.faq-item.open .faq-a{padding:0 22px 18px;max-height:300px}
+
+/* ===== SETTINGS ===== */
+.settings-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.settings-card-head{padding:14px 22px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);background:var(--paper-2);border-bottom:1px solid var(--line)}
+.settings-card.danger-card{border-color:rgba(168,32,26,.25)}
+.settings-card.danger-card .settings-card-head{background:var(--red-soft);color:var(--red)}
+.muted-mono{font-family:'SF Mono',Menlo,monospace;font-size:12px;color:var(--muted)}
+.theme-picker{display:inline-flex;background:var(--paper-2);border-radius:8px;padding:3px;gap:1px}
+.theme-btn{padding:7px 14px;font-size:12px;font-weight:500;border:0;background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
+.theme-btn:hover{color:var(--ink)}
+.theme-btn.active{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+
+/* ===== BOUNCING BALL LOADER ===== */
+.bb-loader-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;gap:18px}
+.bb-loader-wrap.on{display:flex}
+.bb-loader{position:relative;width:75px;height:100px}
+.bb-bar{position:absolute;bottom:0;width:10px;height:50%;background:var(--ink);transform-origin:center bottom;box-shadow:1px 1px 0 rgba(0,0,0,.12)}
+.bb-bar:nth-child(1){left:0;transform:scale(1,.2);animation:bbU1 4s infinite}
+.bb-bar:nth-child(2){left:15px;transform:scale(1,.4);animation:bbU2 4s infinite}
+.bb-bar:nth-child(3){left:30px;transform:scale(1,.6);animation:bbU3 4s infinite}
+.bb-bar:nth-child(4){left:45px;transform:scale(1,.8);animation:bbU4 4s infinite}
+.bb-bar:nth-child(5){left:60px;transform:scale(1,1);animation:bbU5 4s infinite}
+.bb-ball{position:absolute;bottom:10px;left:0;width:10px;height:10px;background:#2c8fff;border-radius:50%;animation:bbBall 4s infinite}
+.bb-text{font-size:13px;color:var(--muted);font-weight:500;text-align:center}
+@keyframes bbBall{
+  0%{transform:translate(0,0)} 5%{transform:translate(8px,-14px)} 10%{transform:translate(15px,-10px)}
+  17%{transform:translate(23px,-24px)} 20%{transform:translate(30px,-20px)} 27%{transform:translate(38px,-34px)}
+  30%{transform:translate(45px,-30px)} 37%{transform:translate(53px,-44px)} 40%{transform:translate(60px,-40px)}
+  50%{transform:translate(60px,0)} 57%{transform:translate(53px,-14px)} 60%{transform:translate(45px,-10px)}
+  67%{transform:translate(37px,-24px)} 70%{transform:translate(30px,-20px)} 77%{transform:translate(22px,-34px)}
+  80%{transform:translate(15px,-30px)} 87%{transform:translate(7px,-44px)} 90%{transform:translate(0,-40px)}
+  100%{transform:translate(0,0)}
+}
+@keyframes bbU1{0%,40%{transform:scale(1,.2)} 50%,90%{transform:scale(1,1)} 100%{transform:scale(1,.2)}}
+@keyframes bbU2{0%,40%{transform:scale(1,.4)} 50%,90%{transform:scale(1,.8)} 100%{transform:scale(1,.4)}}
+@keyframes bbU3{0%,100%{transform:scale(1,.6)}}
+@keyframes bbU4{0%,40%{transform:scale(1,.8)} 50%,90%{transform:scale(1,.4)} 100%{transform:scale(1,.8)}}
+@keyframes bbU5{0%,40%{transform:scale(1,1)} 50%,90%{transform:scale(1,.2)} 100%{transform:scale(1,1)}}
+.settings-row{
+  padding:18px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  border-bottom:1px solid var(--line);
+}
+.settings-row:last-child{border-bottom:0}
+.settings-row-text{flex:1;min-width:0}
+.settings-row-text strong{display:block;font-size:13.5px;font-weight:500;margin-bottom:3px}
+.settings-row-text span{display:block;font-size:12.5px;color:var(--muted)}
+
+.toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
+.toggle input{display:none}
+.toggle .slider{
+  position:absolute;inset:0;cursor:pointer;
+  background:var(--line-2);border-radius:20px;
+  transition:.2s;
+}
+.toggle .slider::before{
+  content:'';position:absolute;
+  width:14px;height:14px;left:3px;top:3px;
+  background:#fff;border-radius:50%;
+  transition:.2s;
+}
+.toggle input:checked+.slider{background:var(--ink)}
+.toggle input:checked+.slider::before{transform:translateX(16px)}
+
+.version-block{
+  padding:24px 0;
+  border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--muted);
+}
+.version-block strong{color:var(--ink);font-weight:500}
+
+/* ===== UTILITIES ===== */
+.tab-content{display:none}.tab-content.on{display:block}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:980px){
+  .sidebar{width:60px;padding:20px 8px}
+  .brand,.nav-item span:not(.nav-icon),.sidebar-foot,.nav-divider{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  .upload-grid,.simple-grid,.help-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
+  .stat-card:nth-child(3){border-right:0}
+  .content,.topbar{padding-left:24px;padding-right:24px}
+  .page-head h1{font-size:36px}
+  .bank-row{flex-direction:column;align-items:flex-start;gap:10px}
+  .bank-row-features{justify-content:flex-start}
+}
+@media(max-width:640px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .filter-input{width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span>Reconcil<em>i</em>a</span>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-section="dashboard" onclick="goSection('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-section="reconcile" onclick="goSection('reconcile')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <span>Riconciliazione</span>
+      </button>
+      <button class="nav-item" data-section="banks" onclick="goSection('banks')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+        <span>Banche</span>
+      </button>
+      <button class="nav-item" data-section="pricing" onclick="goSection('pricing')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>Piani</span>
+      </button>
+
+      <div class="nav-divider"></div>
+
+      <button class="nav-item" data-section="help" onclick="goSection('help')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Guida</span>
+      </button>
+      <button class="nav-item" data-section="settings" onclick="goSection('settings')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Impostazioni</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">v 2.1</div>
+  </aside>
+
+  <!-- ==================== MAIN ==================== -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="tb-title">Dashboard</div>
+      <div class="topbar-actions">
+        <span id="user-info" style="display:inline-flex;align-items:center;gap:8px;margin-right:6px">
+          <span id="plan-badge" class="plan-badge" style="display:none">Free</span>
+          <span id="user-email" style="font-size:12px;color:var(--muted)"></span>
+        </span>
+        <button class="btn btn-primary btn-sm" onclick="newAnalysis()">Nuova analisi</button>
+        <button class="btn btn-outline btn-sm" onclick="window.AUTH.signOut()" title="Esci">Esci</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ==================== DASHBOARD ==================== -->
+      <section class="section on" id="sec-dashboard">
+        <div class="page-head">
+          <h1>Riconciliazione <span style="color:var(--muted)">bancaria</span>.</h1>
+          <p>Carica partitari ed estratti conto in PDF. Reconcilia rileva la banca, estrae i movimenti e li confronta automaticamente.</p>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="goSection('reconcile')">Inizia analisi</button>
+            <button class="btn btn-secondary" onclick="goSection('help')">Come funziona</button>
+          </div>
+        </div>
+
+        <div class="usage-card">
+          <div class="usage-left">
+            <div class="usage-label">Riconciliazioni effettuate</div>
+            <div class="usage-num"><span id="usage-count">—</span><small id="usage-quota"></small></div>
+          </div>
+          <div class="usage-right">
+            <div class="usage-meta" id="usage-plan">Piano <strong>Free</strong></div>
+            <div class="usage-bar"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
+            <a class="usage-meta" href="#" onclick="goSection('pricing');return false" style="text-decoration:none;color:var(--ink);font-weight:500" id="usage-upgrade">Passa a Pro →</a>
+          </div>
+        </div>
+
+        <div class="simple-grid">
+          <div class="simple-grid-block">
+            <h3>Tre passi</h3>
+            <div class="steps">
+              <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                  <strong>Carica i documenti</strong>
+                  <span>Trascina partitari ed estratti conto in PDF.</span>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                  <strong>Analisi automatica</strong>
+                  <span>Reconcilia rileva la banca e confronta i movimenti.</span>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                  <strong>Esporta i risultati</strong>
+                  <span>Scarica i PDF con annotazioni colorate per categoria.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="simple-grid-block">
+            <h3>Banche supportate</h3>
+            <div class="simple-list">
+              <div class="simple-list-item">
+                <div class="item-left"><span class="bank-dot" style="background:#10613A"></span><span class="item-name">Intesa Sanpaolo</span></div>
+                <span class="item-meta">National</span>
+              </div>
+              <div class="simple-list-item">
+                <div class="item-left"><span class="bank-dot" style="background:#003B7E"></span><span class="item-name">Volksbank</span></div>
+                <span class="item-meta">Alto Adige</span>
+              </div>
+              <div class="simple-list-item">
+                <div class="item-left"><span class="bank-dot" style="background:#006B3F"></span><span class="item-name">Banca della Marca</span></div>
+                <span class="item-meta">Veneto · BCC</span>
+              </div>
+              <div class="simple-list-item">
+                <div class="item-left"><span class="bank-dot" style="background:#E4002B"></span><span class="item-name">Banco BPM</span></div>
+                <span class="item-meta">National</span>
+              </div>
+              <div class="simple-list-item">
+                <div class="item-left"><span class="bank-dot" style="background:#8B1A1A"></span><span class="item-name">Monte dei Paschi</span></div>
+                <span class="item-meta">National</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== RECONCILE ==================== -->
+      <section class="section" id="sec-reconcile">
+        <!-- Upload View -->
+        <div class="tab-content on" id="v-upload">
+          <div class="page-head">
+            <h1>Nuova <em>analisi</em>.</h1>
+            <p>Carica i file. La banca emittente viene rilevata automaticamente per ogni estratto conto.</p>
+          </div>
+
+          <div class="quota-banner" id="quota-banner-upload" style="display:none">
+            <div><strong>Hai raggiunto il limite del tuo piano</strong> — non puoi avviare nuove analisi questo mese. Il contatore si azzera il 1° del mese prossimo, oppure passa a Pro per analisi illimitate.</div>
+            <button class="btn btn-sm" onclick="goSection('pricing')">Vedi piani</button>
+          </div>
+
+          <div class="upload-grid">
+            <div class="upload-card">
+              <div class="upload-card-header">
+                <h2>Partitari</h2>
+                <span class="badge">Contabilità</span>
+              </div>
+              <div class="drop-zone" ondragover="dOver(event,this)" ondragleave="dLeave(this)" ondrop="dDrop(event,'p')">
+                <div class="label">Carica Partitari PDF</div>
+                <div class="hint">Trascina qui o clicca per selezionare</div>
+                <input type="file" accept=".pdf" multiple onchange="fSel(event,'p')">
+              </div>
+              <div class="file-list" id="fl-p"></div>
+            </div>
+
+            <div class="upload-card">
+              <div class="upload-card-header">
+                <h2>Estratti Conto</h2>
+                <span class="badge">Bancario</span>
+              </div>
+              <div class="drop-zone" ondragover="dOver(event,this)" ondragleave="dLeave(this)" ondrop="dDrop(event,'e')">
+                <div class="label">Carica Estratti Conto PDF</div>
+                <div class="hint">Trascina qui — la banca viene rilevata in automatico</div>
+                <input type="file" accept=".pdf" multiple onchange="fSel(event,'e')">
+              </div>
+              <div class="file-list" id="fl-e"></div>
+            </div>
+          </div>
+
+          <div class="bb-loader-wrap" id="bb-loader">
+            <div class="bb-loader">
+              <div class="bb-bar"></div>
+              <div class="bb-bar"></div>
+              <div class="bb-bar"></div>
+              <div class="bb-bar"></div>
+              <div class="bb-bar"></div>
+              <div class="bb-ball"></div>
+            </div>
+            <div class="bb-text" id="bb-text">Elaborazione...</div>
+          </div>
+
+          <!-- Hidden but kept for compatibility with existing runAll/log() calls -->
+          <div class="progress-wrap" id="prog" style="display:none">
+            <div class="progress-bar"><div class="progress-fill" id="prog-f" style="width:0%"></div></div>
+            <div class="progress-text" id="prog-t">Elaborazione...</div>
+          </div>
+          <div class="log-area" id="log" style="display:none"></div>
+
+          <div class="analysis-card">
+            <div class="analysis-field">
+              <label class="analysis-label" for="analysis-name">Nome analisi</label>
+              <input class="analysis-input" type="text" id="analysis-name" placeholder="es. Riconciliazione Q1 2026" oninput="checkReady()">
+            </div>
+            <div class="analysis-actions">
+              <button class="btn btn-secondary btn-sm" onclick="clearAll()">Cancella tutto</button>
+              <button class="btn btn-primary" onclick="runAll()" id="btn-go" disabled>Avvia analisi</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results View -->
+        <div class="tab-content" id="v-results">
+          <div class="page-head">
+            <h1>Risultati.</h1>
+            <p>Riepilogo del confronto tra movimenti dei partitari ed estratti conto.</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="s-pm">0</div><div class="stat-label">Mov. Partitario</div></div>
+            <div class="stat-card"><div class="stat-value" id="s-em">0</div><div class="stat-label">Mov. Estratto Conto</div></div>
+            <div class="stat-card"><div class="stat-value green" id="s-ex">0</div><div class="stat-label">Match Esatti</div></div>
+            <div class="stat-card"><div class="stat-value orange" id="s-fz">0</div><div class="stat-label">Approssimativi</div></div>
+            <div class="stat-card"><div class="stat-value red" id="s-un">0</div><div class="stat-label">Non Trovati</div></div>
+          </div>
+
+          <div class="filter-bar">
+            <select class="filter-select" id="fr-type" onchange="filtRec()">
+              <option value="all">Tutti i risultati</option>
+              <option value="exact">Match Esatti</option>
+              <option value="fuzzy">Match Approssimativi</option>
+              <option value="none">Non Trovati</option>
+            </select>
+            <input class="filter-input" type="text" placeholder="Cerca descrizione..." id="fr-desc" oninput="filtRec()">
+            <div style="flex:1"></div>
+            <button class="btn btn-primary btn-sm" id="btn-dl" onclick="downloadAnnotatedPDFs()">Scarica PDF Annotati</button>
+            <button class="btn btn-outline btn-sm" onclick="backToUpload()">Nuova analisi</button>
+          </div>
+
+          <div class="sub-section-head" id="st-ex"><div class="section-dot" style="background:var(--green)"></div><h3>Match Esatti</h3><span class="section-count" id="cn-ex">(0)</span></div>
+          <div class="panel" id="pn-ex"><div class="table-wrap"><div class="table-scroll">
+            <table><thead><tr><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo E/C</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo Part.</th></tr></thead>
+            <tbody id="tb-ex"></tbody></table>
+          </div></div></div>
+
+          <div class="sub-section-head" id="st-fz"><div class="section-dot" style="background:var(--amber)"></div><h3>Match Approssimativi</h3><span class="section-count" id="cn-fz">(0)</span></div>
+          <div class="panel" id="pn-fz"><div class="table-wrap"><div class="table-scroll">
+            <table><thead><tr><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo E/C</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo Part.</th></tr></thead>
+            <tbody id="tb-fz"></tbody></table>
+          </div></div></div>
+
+          <div class="sub-section-head" id="st-ue"><div class="section-dot" style="background:var(--red)"></div><h3>Presenti nell'Estratto Conto, non nel Partitario</h3><span class="section-count" id="cn-ue">(0)</span></div>
+          <div class="panel" id="pn-ue"><div class="table-wrap"><div class="table-scroll">
+            <table><thead><tr><th>Banca</th><th>Data</th><th>Valuta</th><th>Descrizione</th><th style="text-align:right">Dare</th><th style="text-align:right">Avere</th></tr></thead>
+            <tbody id="tb-ue"></tbody></table>
+          </div></div></div>
+
+          <div class="sub-section-head" id="st-up"><div class="section-dot" style="background:var(--muted-2)"></div><h3>Presenti nel Partitario, non nell'Estratto Conto</h3><span class="section-count" id="cn-up">(0)</span></div>
+          <div class="panel" id="pn-up"><div class="table-wrap"><div class="table-scroll">
+            <table><thead><tr><th>Fonte</th><th>Data</th><th>Descrizione</th><th style="text-align:right">Dare</th><th style="text-align:right">Avere</th></tr></thead>
+            <tbody id="tb-up"></tbody></table>
+          </div></div></div>
+        </div>
+      </section>
+
+      <!-- ==================== BANKS ==================== -->
+      <section class="section" id="sec-banks">
+        <div class="page-head">
+          <h1>Banche <em>supportate</em>.</h1>
+          <p>Reconcilia integra parser nativi per cinque istituti italiani. Ogni parser è ottimizzato sui formati specifici.</p>
+        </div>
+
+        <div class="banks-list">
+          <div class="bank-row">
+            <span class="bank-mark" style="background:#10613A"></span>
+            <div class="bank-row-text">
+              <div class="bank-row-name">Intesa Sanpaolo</div>
+              <div class="bank-row-region">Italia · National</div>
+            </div>
+            <div class="bank-row-features">
+              <span>PDF criptati</span>
+              <span>Multi-mensile</span>
+              <span>Conto Business</span>
+            </div>
+          </div>
+
+          <div class="bank-row">
+            <span class="bank-mark" style="background:#003B7E"></span>
+            <div class="bank-row-text">
+              <div class="bank-row-name">Volksbank</div>
+              <div class="bank-row-region">Alto Adige · BPAAIT</div>
+            </div>
+            <div class="bank-row-features">
+              <span>Date abbreviate</span>
+              <span>Posizionale</span>
+              <span>Multi-riga</span>
+            </div>
+          </div>
+
+          <div class="bank-row">
+            <span class="bank-mark" style="background:#006B3F"></span>
+            <div class="bank-row-text">
+              <div class="bank-row-name">Banca della Marca</div>
+              <div class="bank-row-region">Veneto · Credito Cooperativo</div>
+            </div>
+            <div class="bank-row-features">
+              <span>Sezioni dettaglio</span>
+              <span>Dare / Avere</span>
+              <span>Filtri intestatari</span>
+            </div>
+          </div>
+
+          <div class="bank-row">
+            <span class="bank-mark" style="background:#E4002B"></span>
+            <div class="bank-row-text">
+              <div class="bank-row-name">Banco BPM</div>
+              <div class="bank-row-region">Italia · National</div>
+            </div>
+            <div class="bank-row-features">
+              <span>Triple date</span>
+              <span>Importi con prefisso</span>
+              <span>Filtri header</span>
+            </div>
+          </div>
+
+          <div class="bank-row">
+            <span class="bank-mark" style="background:#8B1A1A"></span>
+            <div class="bank-row-text">
+              <div class="bank-row-name">Monte dei Paschi di Siena</div>
+              <div class="bank-row-region">Italia · National</div>
+            </div>
+            <div class="bank-row-features">
+              <span>Data + Valuta</span>
+              <span>Uscite / Entrate</span>
+              <span>Multi-pagina</span>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:13px;color:var(--muted);max-width:520px">Hai bisogno di un parser per un'altra banca? Contattaci con un campione di estratto conto.</p>
+      </section>
+
+      <!-- ==================== PRICING ==================== -->
+      <section class="section" id="sec-pricing">
+        <div class="page-head">
+          <h1>Piani e <em>prezzi</em>.</h1>
+          <p>Scegli il piano più adatto a te. Cambia o annulla in qualsiasi momento.</p>
+        </div>
+        <div class="pricing-grid" id="pricing-cards">
+          <div class="price-card" data-plan="free">
+            <div class="price-tier">Free</div>
+            <div class="price-amount">€0</div>
+            <div class="price-per">per sempre</div>
+            <ul class="price-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>1 analisi al mese (1 credito)</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutte le 5 banche supportate</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PDF annotati con match colorati</li>
+              <li class="muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Storico analisi</li>
+              <li class="muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Supporto prioritario</li>
+            </ul>
+            <button class="btn btn-outline" data-action="select-plan" data-plan="free">Piano attuale</button>
+          </div>
+
+          <div class="price-card featured" data-plan="pro">
+            <span class="price-badge">Consigliato</span>
+            <div class="price-tier">Pro</div>
+            <div class="price-amount">€19<em style="font-size:18px">/mese</em></div>
+            <div class="price-per">fatturazione mensile</div>
+            <ul class="price-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Analisi illimitate</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutte le 5 banche supportate</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PDF annotati con match colorati</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Storico analisi 12 mesi</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Supporto via email</li>
+            </ul>
+            <button class="btn btn-primary" data-action="select-plan" data-plan="pro">Passa a Pro</button>
+          </div>
+
+          <div class="price-card" data-plan="pro_plus">
+            <div class="price-tier">Pro+</div>
+            <div class="price-amount">€49<em style="font-size:18px">/mese</em></div>
+            <div class="price-per">fatturazione mensile</div>
+            <ul class="price-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutto del piano Pro</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Storico analisi illimitato</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Multi-utente (fino a 3)</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Export Excel risultati</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Supporto prioritario</li>
+            </ul>
+            <button class="btn btn-outline" data-action="select-plan" data-plan="pro_plus">Passa a Pro+</button>
+          </div>
+
+          <div class="price-card" data-plan="business">
+            <div class="price-tier">Business</div>
+            <div class="price-amount" style="font-size:36px">Su misura</div>
+            <div class="price-per">contattaci per un preventivo</div>
+            <ul class="price-feats">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutto del piano Pro+</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Multi-utente illimitato</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>API per integrazioni</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>SLA 99.9% e onboarding</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Account manager dedicato</li>
+            </ul>
+            <a class="btn btn-outline" href="mailto:contact@netawebstest.com?subject=Reconcilia%20Business">Contattaci</a>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);max-width:520px;margin-top:32px">Tutti i piani includono accesso completo alle funzioni di parsing e annotazione. Cambi di piano effettivi dal mese successivo.</p>
+      </section>
+
+      <!-- ==================== HELP ==================== -->
+      <section class="section" id="sec-help">
+        <div class="page-head">
+          <h1>Guida e <em>FAQ</em>.</h1>
+          <p>Tutto quello che ti serve per ottenere il massimo da Reconcilia.</p>
+        </div>
+
+        <div class="help-grid">
+          <div class="help-card">
+            <h3>Primo utilizzo</h3>
+            <p>Apri Riconciliazione, carica almeno un partitario e un estratto conto, dai un nome all'analisi e premi Avvia.</p>
+          </div>
+          <div class="help-card">
+            <h3>Privacy</h3>
+            <p>Tutto il parsing avviene localmente nel tuo browser. Nessun PDF viene caricato su server esterni.</p>
+          </div>
+          <div class="help-card">
+            <h3>Formati supportati</h3>
+            <p>Estratti conto delle cinque banche supportate, anche criptati. I partitari devono avere date in DD/MM/YYYY.</p>
+          </div>
+          <div class="help-card">
+            <h3>PDF annotati</h3>
+            <p>Verde per match esatti, arancione per approssimativi, rosso per movimenti non trovati.</p>
+          </div>
+        </div>
+
+        <div class="faq">
+          <div class="faq-item" onclick="toggleFAQ(this)">
+            <button class="faq-q">
+              Cosa significa "match approssimativo"?
+              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-a">Un match si considera approssimativo quando l'importo coincide con uno scarto temporale fino a 45 giorni, oppure quando descrizione e importo sono molto simili ma non perfettamente identici.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFAQ(this)">
+            <button class="faq-q">
+              Posso caricare più estratti conto contemporaneamente?
+              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-a">Sì, puoi caricare estratti conto di banche diverse insieme. Reconcilia rileva automaticamente la banca emittente per ogni file.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFAQ(this)">
+            <button class="faq-q">
+              Cosa succede ai miei file dopo l'analisi?
+              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-a">I file rimangono solo nel tuo browser durante l'analisi. Quando ricarichi la pagina o premi "Cancella tutto", vengono eliminati dalla memoria.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFAQ(this)">
+            <button class="faq-q">
+              La mia banca non è supportata, cosa posso fare?
+              <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-a">Vai nella sezione Banche e contattaci. Possiamo sviluppare un parser dedicato a partire da un campione di estratto conto.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SETTINGS ==================== -->
+      <section class="section" id="sec-settings">
+        <div class="page-head">
+          <h1>Impostazioni.</h1>
+          <p>Personalizza l'aspetto e gestisci il tuo account. Le impostazioni di matching e parsing sono ottimizzate automaticamente.</p>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-head">Aspetto</div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Tema</strong>
+              <span>Chiaro, scuro o automatico (segue il sistema).</span>
+            </div>
+            <div class="theme-picker" id="theme-picker">
+              <button type="button" class="theme-btn" data-theme="light">Chiaro</button>
+              <button type="button" class="theme-btn" data-theme="dark">Scuro</button>
+              <button type="button" class="theme-btn" data-theme="auto">Auto</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Densità interfaccia</strong>
+              <span>Più spazio o più contenuto a schermo.</span>
+            </div>
+            <div class="theme-picker" id="density-picker">
+              <button type="button" class="theme-btn" data-density="comfortable">Comoda</button>
+              <button type="button" class="theme-btn" data-density="compact">Compatta</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-head">Account</div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Email</strong>
+              <span id="set-email" class="muted-mono">—</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Nome</strong>
+              <span id="set-name" class="muted-mono">—</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Piano</strong>
+              <span id="set-plan" class="muted-mono">—</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="goSection('pricing')">Cambia piano</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Password</strong>
+              <span>Ricevi un link via email per cambiarla.</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="sendPasswordReset()">Reset password</button>
+          </div>
+        </div>
+
+        <div class="settings-card danger-card">
+          <div class="settings-card-head">Zona pericolo</div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Esci da tutti i dispositivi</strong>
+              <span>Termina tutte le sessioni attive su questo account.</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="window.AUTH.signOut()">Esci</button>
+          </div>
+        </div>
+
+      </section>
+
+      <footer class="app-footer">
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-bottom:10px;font-size:11.5px">
+          <a href="terms.html" target="_blank" rel="noopener">Termini</a>
+          <a href="privacy.html" target="_blank" rel="noopener">Privacy</a>
+          <a href="cookie.html" target="_blank" rel="noopener">Cookie</a>
+          <a href="#" onclick="window.CookieConsent&&window.CookieConsent.openPrefs();return false">Preferenze cookie</a>
+          <a href="mailto:contact@netawebstest.com">Contatti</a>
+        </div>
+        © 2026 Reconcilia · Riconciliazione bancaria automatica · Made by <a href="https://netawebs.net" target="_blank" rel="noopener">netawebs.net</a>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// ===== AUTH BOOTSTRAP + PROFILE =====
+const PLAN_QUOTA={free:1,pro:Infinity,pro_plus:Infinity,business:Infinity};
+const PLAN_LABEL={free:'Free',pro:'Pro',pro_plus:'Pro+',business:'Business'};
+let CURRENT_PROFILE=null;
+let CURRENT_COUNT=0;
+
+function startOfMonthISO(){
+  const d=new Date();
+  return new Date(d.getFullYear(),d.getMonth(),1).toISOString();
+}
+
+function quotaReached(){
+  const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  const quota=PLAN_QUOTA[plan];
+  return quota!==Infinity && CURRENT_COUNT>=quota;
+}
+
+async function loadProfileAndUsage(){
+  const u=await window.AUTH.user();
+  if(!u)return;
+  document.getElementById('user-email').textContent=u.email||'';
+  // Profile
+  const{data:prof}=await window.AUTH.client.from('profiles').select('plan,nome,cognome').eq('id',u.id).maybeSingle();
+  CURRENT_PROFILE=prof||{plan:'free'};
+  const plan=(CURRENT_PROFILE.plan||'free').toLowerCase();
+  // Plan badge in topbar
+  const badge=document.getElementById('plan-badge');
+  badge.textContent=PLAN_LABEL[plan]||plan;
+  badge.className='plan-badge plan-'+plan;
+  badge.style.display='inline-block';
+  // Count of analyses for the current calendar month (matches quota period)
+  const{count}=await window.AUTH.client
+    .from('analyses')
+    .select('*',{count:'exact',head:true})
+    .eq('user_id',u.id)
+    .gte('created_at',startOfMonthISO());
+  CURRENT_COUNT=count||0;
+  renderUsage();
+  updBtn&&updBtn();
+}
+
+function renderUsage(){
+  const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  const quota=PLAN_QUOTA[plan];
+  const cnt=document.getElementById('usage-count');
+  const qt=document.getElementById('usage-quota');
+  const planEl=document.getElementById('usage-plan');
+  const bar=document.getElementById('usage-bar');
+  const up=document.getElementById('usage-upgrade');
+  if(!cnt)return;
+  cnt.textContent=CURRENT_COUNT;
+  if(quota===Infinity){
+    qt.textContent=' / illimitate';
+    bar.style.width='100%';
+    bar.className='usage-bar-fill';
+    up.style.display='none';
+  }else{
+    qt.textContent=' / '+quota+' questo mese';
+    const pct=Math.min(100,Math.round(CURRENT_COUNT/quota*100));
+    bar.style.width=pct+'%';
+    bar.className='usage-bar-fill'+(pct>=100?' full':pct>=66?' warn':'');
+    up.style.display='inline';
+  }
+  planEl.innerHTML='Piano <strong>'+(PLAN_LABEL[plan]||plan)+'</strong>';
+}
+
+async function recordAnalysis(){
+  try{
+    const u=await window.AUTH.user();
+    if(!u)return;
+    const R=S.res||{exact:[],fuzzy:[],ue:[],up:[]};
+    await window.AUTH.client.from('analyses').insert({
+      user_id:u.id,
+      name:S.analysisName||'Senza nome',
+      num_partitari:S.pf?S.pf.length:0,
+      num_estratti:S.ef?S.ef.length:0,
+      num_movimenti_partitario:S.pm?S.pm.length:0,
+      num_movimenti_estratto:S.em?S.em.length:0,
+      num_match_esatti:R.exact.length,
+      num_match_approx:R.fuzzy.length,
+      num_non_trovati:(R.ue?R.ue.length:0)+(R.up?R.up.length:0)
+    });
+    CURRENT_COUNT++;
+    renderUsage();
+    if(typeof updBtn==='function')updBtn();
+  }catch(e){console.error('record analysis failed',e);}
+}
+
+function highlightCurrentPlan(){
+  const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  document.querySelectorAll('#pricing-cards .price-card').forEach(card=>{
+    card.classList.remove('current');
+    const oldBadge=card.querySelector('.price-badge.current');
+    if(oldBadge)oldBadge.remove();
+    const btn=card.querySelector('button[data-action="select-plan"]');
+    if(btn){
+      const cardPlan=card.getAttribute('data-plan');
+      if(cardPlan===plan){
+        card.classList.add('current');
+        if(!card.querySelector('.price-badge')){
+          const b=document.createElement('span');
+          b.className='price-badge current';
+          b.textContent='Piano attuale';
+          card.prepend(b);
+        }
+        btn.textContent='Piano attuale';
+        btn.disabled=true;
+      }else{
+        const labelMap={pro:'Passa a Pro',pro_plus:'Passa a Pro+',business:'Passa a Business',free:'Torna a Free'};
+        btn.textContent=labelMap[cardPlan]||'Cambia piano';
+        btn.disabled=false;
+      }
+    }
+  });
+}
+
+async function selectPlan(plan){
+  const cur=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  if(plan===cur)return;
+  if(plan==='free'){
+    if(!confirm('Tornare al piano Free? Avrai un limite di 1 analisi al mese.'))return;
+  }else{
+    alert('Per attivare il piano '+PLAN_LABEL[plan]+' completa il pagamento.\n\nIl flusso di pagamento (Stripe) sarà attivo a breve. Per ora scrivi a contact@netawebstest.com per attivare manualmente.');
+    return;
+  }
+  try{
+    const u=await window.AUTH.user();
+    const{error}=await window.AUTH.client.from('profiles').update({plan}).eq('id',u.id);
+    if(error)throw error;
+    CURRENT_PROFILE.plan=plan;
+    const badge=document.getElementById('plan-badge');
+    badge.textContent=PLAN_LABEL[plan];badge.className='plan-badge plan-'+plan;
+    renderUsage();highlightCurrentPlan();updBtn();
+  }catch(e){alert('Errore: '+e.message)}
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-action="select-plan"]');
+  if(t){e.preventDefault();selectPlan(t.getAttribute('data-plan'))}
+});
+
+// ===== THEME / DENSITY =====
+const THEME_KEY='reconcilia.theme';
+const DENSITY_KEY='reconcilia.density';
+
+function applyTheme(theme){
+  const root=document.documentElement;
+  if(theme==='auto'){
+    const dark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme',dark?'dark':'light');
+  }else{
+    root.setAttribute('data-theme',theme);
+  }
+  localStorage.setItem(THEME_KEY,theme);
+  document.querySelectorAll('#theme-picker .theme-btn').forEach(b=>{
+    b.classList.toggle('active',b.getAttribute('data-theme')===theme);
+  });
+}
+
+function applyDensity(density){
+  document.documentElement.setAttribute('data-density',density);
+  localStorage.setItem(DENSITY_KEY,density);
+  document.querySelectorAll('#density-picker .theme-btn').forEach(b=>{
+    b.classList.toggle('active',b.getAttribute('data-density')===density);
+  });
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('#theme-picker .theme-btn');
+  if(t)applyTheme(t.getAttribute('data-theme'));
+  const d=e.target.closest('#density-picker .theme-btn');
+  if(d)applyDensity(d.getAttribute('data-density'));
+});
+
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{
+    if(localStorage.getItem(THEME_KEY)==='auto')applyTheme('auto');
+  });
+}
+
+(function(){
+  const t=localStorage.getItem(THEME_KEY)||'light';
+  applyTheme(t);
+  const d=localStorage.getItem(DENSITY_KEY)||'comfortable';
+  applyDensity(d);
+})();
+
+function fillSettingsAccountInfo(){
+  if(!CURRENT_PROFILE)return;
+  const e=document.getElementById('set-email');
+  const n=document.getElementById('set-name');
+  const p=document.getElementById('set-plan');
+  if(e)e.textContent=document.getElementById('user-email').textContent||'—';
+  if(n){
+    const full=[CURRENT_PROFILE.nome,CURRENT_PROFILE.cognome].filter(Boolean).join(' ').trim();
+    n.textContent=full||'—';
+  }
+  if(p)p.textContent=PLAN_LABEL[(CURRENT_PROFILE.plan||'free')]||'—';
+}
+
+async function sendPasswordReset(){
+  try{
+    const u=await window.AUTH.user();
+    if(!u||!u.email){alert('Email non disponibile.');return;}
+    const{error}=await window.AUTH.client.auth.resetPasswordForEmail(u.email,{
+      redirectTo:window.location.origin+'/login.html'
+    });
+    if(error)throw error;
+    alert('Ti abbiamo mandato un link via email per reimpostare la password.');
+  }catch(e){alert('Errore: '+e.message);}
+}
+
+(async ()=>{
+  try{
+    const session=await window.AUTH.requireAuth();
+    if(!session)return;
+    await loadProfileAndUsage();
+    highlightCurrentPlan();
+    fillSettingsAccountInfo();
+    document.documentElement.classList.add('auth-ok');
+  }catch(e){
+    console.error('Auth error',e);
+    window.location.replace('login.html');
+  }
+})();
+
+// ===== STATE =====
+const S = { pf:[], ef:[], pm:[], em:[], res:null, ecFiles:{}, partFiles:{} };
+
+// ===== NAVIGATION =====
+const SECTION_META = {
+  dashboard:'Dashboard',
+  reconcile:'Riconciliazione',
+  banks:'Banche',
+  pricing:'Piani e prezzi',
+  help:'Guida',
+  settings:'Impostazioni'
+};
+function goSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  const target=document.getElementById('sec-'+name);
+  if(target)target.classList.add('on');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navItem=document.querySelector('.nav-item[data-section="'+name+'"]');
+  if(navItem)navItem.classList.add('active');
+  const title=SECTION_META[name];
+  if(title)document.getElementById('tb-title').textContent=title;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toggleFAQ(item){item.classList.toggle('open')}
+
+// ===== PUA DECODER (Intesa San Paolo encrypted PDFs) =====
+const PUA_MAP = {};
+for(let i=0;i<10;i++) PUA_MAP[0xE0BE+i] = String(i);
+Object.assign(PUA_MAP, {
+  0xE035:' ', 0xE03E:'.', 0xE051:'/', 0xE04C:'*', 0xE050:'-', 0xE096:',',
+  0xE041:'+', 0xE065:':', 0xE094:' ', 0xE095:'.', 0xE059:',', 0xE036:"'",
+  0xE040:'€', 0xE04D:')', 0xE04E:'!', 0xE054:'(', 0xE05A:';', 0xE069:'=',
+  0xE068:'<', 0xE06A:'>', 0xE090:'•', 0xE033:'"', 0xE02C:'"',
+  0xE00E:'\n', 0xE015:'', 0xE016:''
+});
+const LC={0x6C:'a',0x6D:'b',0x6E:'c',0x6F:'d',0x70:'e',0x71:'f',0x72:'g',0x73:'h',0x74:'i',0x75:'j',0x76:'k',0x77:'è',0x78:'é',0x79:'ì',0x7A:'l',0x7B:'m',0x7C:'n',0x7D:'o',0x7E:'p',0x7F:'q',0x80:'r',0x81:'ò',0x82:'ó',0x83:'ù',0x84:'ú',0x85:'à',0x86:'s',0x87:'t',0x88:'u',0x89:'v',0x8A:'w',0x8B:'x',0x8C:'y',0x8D:'z'};
+for(const[k,v] of Object.entries(LC)) PUA_MAP[0xE000+Number(k)]=v;
+const UC={0x9A:'A',0x9B:'B',0x9C:'C',0x9D:'D',0x9E:'E',0x9F:'F',0xA0:'G',0xA1:'H',0xA2:'I',0xA3:'J',0xA4:'K',0xA5:'È',0xA6:'É',0xA7:'Ì',0xA8:'L',0xA9:'M',0xAA:'N',0xAB:'O',0xAC:'P',0xAD:'Q',0xAE:'R',0xAF:'Ò',0xB0:'Ó',0xB1:'Ù',0xB2:'Ú',0xB3:'S',0xB4:'T',0xB5:'U',0xB6:'V',0xB7:'W',0xB8:'X',0xB9:'Y',0xBA:'Z'};
+for(const[k,v] of Object.entries(UC)) PUA_MAP[0xE000+Number(k)]=v;
+
+function decodePUA(text) {
+  let out = '';
+  for (const ch of text) {
+    const code = ch.codePointAt(0);
+    if (PUA_MAP[code] !== undefined) out += PUA_MAP[code];
+    else out += ch;
+  }
+  return out;
+}
+
+// ===== VIEWS =====
+function showView(id){
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+function backToUpload(){newAnalysis()}
+function newAnalysis(){
+  clearAll();
+  $('analysis-name').value='';
+  updBtn();
+  showView('v-upload');
+  goSection('reconcile');
+}
+
+// ===== FILE HANDLING =====
+function $(id){return document.getElementById(id)}
+function dOver(e,el){e.preventDefault();el.classList.add('drag')}
+function dLeave(el){el.classList.remove('drag')}
+function dDrop(e,t){e.preventDefault();e.currentTarget.classList.remove('drag');addF(Array.from(e.dataTransfer.files).filter(f=>f.name.toLowerCase().endsWith('.pdf')),t)}
+function fSel(e,t){addF(Array.from(e.target.files),t);e.target.value=''}
+function addF(files,t){
+  const l=t==='p'?S.pf:S.ef;
+  for(const f of files)if(!l.find(x=>x.name===f.name))l.push(f);
+  renFL(t);updBtn();
+}
+function remF(t,i){(t==='p'?S.pf:S.ef).splice(i,1);renFL(t);updBtn()}
+function renFL(t){
+  const l=t==='p'?S.pf:S.ef;
+  document.getElementById('fl-'+t).innerHTML=l.map((f,i)=>`<div class="file-item"><span class="name">${f.name}</span>${f._bk?`<span class="bank">${f._bk}</span>`:''}${f._st?`<span class="status ${f._st}">${f._stx||''}</span>`:''}<button class="remove" onclick="remF('${t}',${i})">&times;</button></div>`).join('');
+}
+function updBtn(){
+  const btn=$('btn-go');
+  const blocked=typeof quotaReached==='function'&&quotaReached();
+  btn.disabled=blocked||(S.pf.length===0&&S.ef.length===0)||!$('analysis-name').value.trim();
+  btn.textContent=blocked?'Limite mensile raggiunto':'Avvia analisi';
+  const banner=$('quota-banner-upload');
+  if(banner)banner.style.display=blocked?'flex':'none';
+  const view=$('v-upload');
+  if(view)view.classList.toggle('locked',blocked);
+}
+function checkReady(){updBtn()}
+function clearAll(){S.pf=[];S.ef=[];S.pm=[];S.em=[];S.res=null;S.ecFiles={};S.partFiles={};S.analysisName='';renFL('p');renFL('e');updBtn();$('log').innerHTML='';$('log').classList.remove('on')}
+
+// ===== LOG =====
+function log(msg){const el=$('log');el.classList.add('on');el.innerHTML+=msg+'\n';el.scrollTop=el.scrollHeight}
+
+// ===== PDF EXTRACTION =====
+async function getPDFItems(file){
+  const ab=await file.arrayBuffer();
+  const abCopy=ab.slice(0);
+  const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+  const pages=[];
+  const pageMeta=[];
+  for(let i=1;i<=pdf.numPages;i++){
+    const pg=await pdf.getPage(i);
+    const ct=await pg.getTextContent();
+    const vp=pg.getViewport({scale:1});
+    const sc=600/vp.width;
+    pageMeta.push({width:vp.width,height:vp.height,sc});
+    const items=ct.items.map(it=>{
+      let text = it.str;
+      text = decodePUA(text);
+      return {
+        t:text,
+        x:Math.round(it.transform[4]*sc*10)/10,
+        y:Math.round((vp.height-it.transform[5])*sc*10)/10,
+        oy:it.transform[5],
+        oh:it.transform[3]||10,
+        w:it.width*sc
+      };
+    });
+    pages.push(items);
+  }
+  pages._meta=pageMeta;
+  pages._bytes=abCopy;
+  return pages;
+}
+
+function buildLines(items){
+  if(!items.length)return[];
+  const yg={};
+  for(const it of items){
+    const yk=Math.round(it.y/2)*2;
+    if(!yg[yk])yg[yk]=[];
+    yg[yk].push(it);
+  }
+  return Object.keys(yg).map(Number).sort((a,b)=>a-b).map(yk=>{
+    const g=yg[yk].sort((a,b)=>a.x-b.x);
+    const oyVals=g.filter(i=>i.oy!=null).map(i=>i.oy);
+    const ohVals=g.filter(i=>i.oh!=null).map(i=>i.oh);
+    return{text:g.map(i=>i.t).join(' ').trim(),items:g,y:yk,
+      oy:oyVals.length?Math.min(...oyVals):null,
+      oh:ohVals.length?Math.max(...ohVals):10};
+  }).filter(l=>l.text);
+}
+
+// ===== NUMBER / DATE PARSING =====
+function pNum(s){
+  if(!s||typeof s!=='string')return null;
+  s=s.trim().replace(/\x19/g,'').replace(/\s/g,'');
+  if(!s||s==='-')return null;
+  let neg=false;
+  if(s.startsWith('-')){neg=true;s=s.substring(1)}
+  s=s.replace(/\./g,'').replace(',','.');
+  const n=parseFloat(s);
+  if(isNaN(n))return null;
+  return neg?-n:n;
+}
+
+function pDate(s){
+  if(!s)return null;
+  const m=s.trim().match(/(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})/);
+  if(!m)return null;
+  let[,d,mo,y]=m;
+  if(y.length===2)y='20'+y;
+  return d.padStart(2,'0')+'/'+mo.padStart(2,'0')+'/'+y;
+}
+
+function fmtN(n){
+  if(!n||n===0)return'';
+  return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+
+// ===== BANK DETECTION =====
+function detectBank(pages){
+  let txt='';
+  for(let i=0;i<Math.min(3,pages.length);i++){
+    txt+=buildLines(pages[i]).map(l=>l.text).join('\n')+'\n';
+  }
+  if(/INTESA.*SANPAOLO/i.test(txt))return{key:'intesa',name:'Intesa San Paolo'};
+  // Banco BPM: name (older PDFs), BIC BAPPIT21, ABI 05034 (in IBAN or INDEX), ECITA- doc ID, YouCard Business
+  if(/BANCO\s*BPM/i.test(txt)||/BAPPIT21/i.test(txt)||/\b05034\b/.test(txt)||/ECITA-\d{4,}/i.test(txt)||/YouCard\s*Business/i.test(txt))return{key:'bpm',name:'Banco BPM'};
+  if(/Banca della Marca/i.test(txt)||/CREDITO COOPERATIVO/i.test(txt)||/BCC ICCREA/i.test(txt))return{key:'bcc',name:'Banca della Marca (BCC)'};
+  if(/Volksbank/i.test(txt)||/BPAAIT/i.test(txt)||/Banca Popolare dell.Alto Adige/i.test(txt))return{key:'volksbank',name:'Volksbank'};
+  if(/MONTE\s*DEI\s*PASCHI/i.test(txt)||/BANCAMONTEDEIPASCHI/i.test(txt)||/www\.mps\.it/i.test(txt)||/MONTEPASCHI/i.test(txt))return{key:'mps',name:'Monte dei Paschi di Siena'};
+  return null;
+}
+
+// ===== PARTITARIO COLUMN AUTO-DETECTION =====
+// Some accounting systems use a wider layout (DARE ~440, AVERE ~500, SALDO ~550),
+// others use a compact one (DARE ~360, AVERE ~410, SALDO ~450). We cluster numeric
+// x positions across data rows to find the three columns automatically.
+function detectPartCols(pages){
+  const xs=[];
+  for(const pg of pages){
+    const lines=buildLines(pg);
+    for(const l of lines){
+      if(!/^\d{2}\/\d{2}\/\d{2,4}/.test(l.text))continue;
+      if(/Saldo\s*(Apertura|al|periodo)/i.test(l.text))continue;
+      for(const it of l.items){
+        const txt=it.t.trim();
+        if(/^[\d\.]+,\d{2}$/.test(txt)&&it.x>200)xs.push(it.x);
+      }
+    }
+  }
+  if(xs.length<6)return null;
+  xs.sort((a,b)=>a-b);
+  const clusters=[[xs[0]]];
+  for(let i=1;i<xs.length;i++){
+    const prev=clusters[clusters.length-1];
+    if(xs[i]-prev[prev.length-1]<25)prev.push(xs[i]);
+    else clusters.push([xs[i]]);
+  }
+  if(clusters.length<3)return null;
+  const top3=[...clusters].sort((a,b)=>b.length-a.length).slice(0,3).sort((a,b)=>a[0]-b[0]);
+  return {
+    dareMin:top3[0][0]-5,
+    dareMax:(top3[0][top3[0].length-1]+top3[1][0])/2,
+    avereMax:(top3[1][top3[1].length-1]+top3[2][0])/2
+  };
+}
+
+// ===== PARTITARIO PARSER =====
+function parsePart(pages,fname){
+  const mov=[];
+  let bankName='',codConto='',ditta='';
+  const cols=detectPartCols(pages);
+  const descMax=cols?cols.dareMin:350;
+
+  for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
+    const pgItems=pages[pgIdx];
+    const lines=buildLines(pgItems);
+    if(!bankName){
+      for(const l of lines){
+        if(/Cod\.\s*Conto/i.test(l.text)){
+          const m2=l.text.match(/Cod\.\s*Conto\s*:?\s*(\S+)\s+(.*)/i);
+          if(m2){codConto=m2[1];bankName=m2[2].trim()}
+        }
+        if(/^Ditta\s*:/i.test(l.text)){
+          ditta=l.text.replace(/^Ditta\s*:\s*\d+\s*/i,'').trim();
+        }
+      }
+    }
+
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const t=l.text;
+      if(/Data\s*reg/i.test(t)||/SEGUE/i.test(t)||/Pagina/i.test(t)||/Saldo\s*(Apertura|al|periodo)/i.test(t))continue;
+      if(/^\*{3}/.test(t))continue;
+
+      const dm=t.match(/^(\d{2}\/\d{2}\/\d{2,4})\s+/);
+      if(!dm)continue;
+      const date=pDate(dm[1]);
+      if(!date)continue;
+
+      const numItems=l.items.filter(it=>/^\d[\d\.,]*\d$/.test(it.t.trim())&&it.t.includes(','));
+
+      let dare=0,avere=0,saldo=null;
+      let descItems=[];
+
+      for(const it of l.items){
+        const x=it.x;
+        const txt=it.t.trim();
+        if(x<55)continue;
+        if(x>=55&&x<85&&/^\d+$/.test(txt))continue;
+
+        const isNum=/^[\d\.]+,\d{2}$/.test(txt);
+        if(isNum){
+          if(cols){
+            if(x<cols.dareMax)dare=pNum(txt);
+            else if(x<cols.avereMax)avere=pNum(txt);
+            else saldo=pNum(txt);
+          }else if(x>=350){
+            if(x>=440)saldo=pNum(txt);
+            else if(x>=390)avere=pNum(txt);
+            else dare=pNum(txt);
+          }else if(x>=300){
+            dare=pNum(txt);
+          }
+        }else{
+          if(x>=200&&x<descMax){
+            descItems.push(txt);
+          }else if(x>=85&&x<200){
+            if(/^\d{2}\/\d{2}\/\d{2}/.test(txt))continue;
+            if(/^\d+$/.test(txt)&&txt.length<=6)continue;
+          }
+        }
+      }
+
+      let description=descItems.join(' ');
+
+      if(!cols&&dare===0&&avere===0&&numItems.length>0){
+        const sorted=[...numItems].sort((a,b)=>a.x-b.x);
+        if(sorted.length>=3){
+          dare=pNum(sorted[sorted.length-3].t);
+          avere=pNum(sorted[sorted.length-2].t);
+          saldo=pNum(sorted[sorted.length-1].t);
+        }else if(sorted.length===2){
+          saldo=pNum(sorted[1].t);
+          const val=pNum(sorted[0].t);
+          if(sorted[0].x<400)dare=val;
+          else avere=val;
+        }else if(sorted.length===1){
+          saldo=pNum(sorted[0].t);
+        }
+      }
+
+      if(i+1<lines.length){
+        const nl=lines[i+1];
+        if(!/^\d{2}\/\d{2}\/\d{2}/.test(nl.text)&&!/SEGUE/i.test(nl.text)&&
+           !/Data\s*reg/i.test(nl.text)&&!/Pagina/i.test(nl.text)&&
+           !/Saldo/i.test(nl.text)&&!/^\*{3}/.test(nl.text)&&nl.text.trim().length>1){
+          const contDesc=nl.items
+            .filter(it=>!(/^\d{2}\/\d{2}\/\d{3}$/.test(it.t.trim())))
+            .map(it=>it.t).join(' ').trim();
+          if(contDesc.length>1)description+=' '+contDesc;
+        }
+      }
+
+      let codCausale='';
+      const cm=description.match(/^(\d{3})\s+(.*)/);
+      if(cm){codCausale=cm[1];description=cm[2]}
+
+      if(date&&(dare>0||avere>0)){
+        mov.push({
+          type:'partitario',source:bankName||fname,codConto,ditta,
+          date,dateValuta:null,description:description.trim(),codCausale,
+          dare:dare||0,avere:avere||0,
+          amount:(dare||0)-(avere||0),
+          fileName:fname,_pgIdx:pgIdx,_oy:l.oy,_oh:l.oh
+        });
+      }
+    }
+  }
+  return mov;
+}
+
+// ===== INTESA SAN PAOLO PARSER =====
+function parseIntesa(pages,fname){
+  const mov=[];
+  let cur=null;
+  let inRiepilogo=false;
+
+  for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
+    const pgItems=pages[pgIdx];
+    const lines=buildLines(pgItems);
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const t=l.text;
+
+      if(/Riepilogo/i.test(t)||/0%\s*Totale\s*Tipologia/i.test(t)||/Tipologia\s*affidamento/i.test(t)){inRiepilogo=true;continue}
+      if(/Dettaglio\s*movimenti/i.test(t)){inRiepilogo=false;continue}
+      if(inRiepilogo)continue;
+
+      if(/Data\s*Operazione/i.test(t))continue;
+      if(/Saldo\s*(iniziale|finale)/i.test(t))continue;
+      if(/Pagina\s*\d/i.test(t))continue;
+      if(/INTESA.*SANPAOLO/i.test(t))continue;
+      if(/ESTRATTO\s*CONTO\s*N/i.test(t))continue;
+      if(/Informazioni\s*utili/i.test(t))continue;
+      if(/Coordinate\s*bancarie/i.test(t))continue;
+      if(/^IBAN/i.test(t)||/^BIC/i.test(t))continue;
+      if(/Tipologia\s*conto/i.test(t))continue;
+      if(/Conto\s*Business/i.test(t))continue;
+      if(/Filiale\s*di/i.test(t))continue;
+      if(/VENEZIA/i.test(t)&&t.length<40)continue;
+      if(/Avvisi\s*importanti/i.test(t))continue;
+      if(/Prelievi\s*Mooney/i.test(t))continue;
+      if(/Informativa/i.test(t))continue;
+      if(/Per\s*qualsiasi/i.test(t))continue;
+      if(/Dettaglio\s*movimenti/i.test(t))continue;
+      if(/^AL\s+\d/i.test(t))continue;
+      if(/^C\/C\s*N/i.test(t))continue;
+      if(/gestore|Filiale\s*Digitale|Numero\s*verde/i.test(t))continue;
+      if(/Ci\s*segua/i.test(t))continue;
+      if(/App\s*Intesa/i.test(t))continue;
+      if(/www\./i.test(t))continue;
+      if(/^\+\d/i.test(t))continue;
+      if(/Totale\s*(accrediti|addebiti)/i.test(t))continue;
+      if(/Saldo\s*del\s*periodo/i.test(t))continue;
+      if(/Cell:|Telefono/i.test(t))continue;
+      if(/SESTIERE|CANNAREGIO|SCACHI|SCARPA|CHINELLATO/i.test(t)&&!/Bonifico|Commissioni|Accredito|Pagamento/i.test(t))continue;
+      if(/^\d{5}$/.test(t.trim()))continue;
+      if(/^01\s+\d{5}$/.test(t.trim()))continue;
+
+      const dm=t.match(/^(\d{2}[\.\/-]\d{2}[\.\/-]\d{4})\s+(\d{2}[\.\/-]\d{2}[\.\/-]\d{4})?\s*(.*)/);
+      if(dm){
+        if(cur&&cur.date)mov.push(cur);
+
+        const date=pDate(dm[1]);
+        const dv=dm[2]?pDate(dm[2]):date;
+        let rest=(dm[3]||'').trim().replace(/^\*\s*/,'');
+
+        let addebiti=0,accrediti=0;
+        let descParts=[];
+
+        for(const it of l.items){
+          const x=it.x;
+          const txt=it.t.replace(/[ ]/g,'').trim().replace(/\x19/g,'');
+          if(/^\d{2}[\.\/-]\d{2}[\.\/-]\d{4}$/.test(txt))continue;
+          if(txt==='*'||!txt)continue;
+
+          const isAmt=/^[\d\.]+,\s*\d{2}$/.test(txt.replace(/\s/g,''));
+          if(isAmt){
+            const val=pNum(txt);
+            if(val!==null){
+              if(x>430){accrediti=val}
+              else if(x>280){addebiti=val}
+            }
+          }else{
+            if(x>120&&x<350)descParts.push(txt);
+          }
+        }
+
+        cur={
+          type:'estratto',source:'Intesa San Paolo',bank:'intesa',
+          date,dateValuta:dv,
+          description:descParts.join(' ').trim()||rest.replace(/[\d\.]+,\s*\d{2}/g,'').trim(),
+          dare:addebiti,avere:accrediti,
+          amount:(accrediti||0)-(addebiti||0),
+          fileName:fname,_pgIdx:pgIdx,_oy:l.oy,_oh:l.oh
+        };
+      }else if(cur){
+        const cleaned=l.items
+          .filter(it=>{
+            const x=it.x;
+            const txt=it.t.replace(/[ ]/g,'').trim().replace(/\x19/g,'');
+            return x>120&&x<350&&!/^[\d\.]+,\s*\d{2}$/.test(txt.replace(/\s/g,''))&&txt.length>0;
+          })
+          .map(it=>it.t.replace(/[ ]/g,'').trim().replace(/\x19/g,'')).join(' ').trim();
+        if(cleaned.length>1&&!/^Pagina/i.test(cleaned)&&!/INTESA/i.test(cleaned)&&
+           !/ESTRATTO/i.test(cleaned))
+          cur.description+=' '+cleaned;
+      }
+    }
+  }
+  if(cur&&cur.date)mov.push(cur);
+  return mov.filter(m=>(m.dare>0||m.avere>0)&&!/^\d{1,3}$/.test(m.description.trim()));
+}
+
+// ===== BANCO BPM PARSER =====
+function parseBPM(pages,fname){
+  const mov=[];
+  let cur=null;
+
+  for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
+    const pgItems=pages[pgIdx];
+    const lines=buildLines(pgItems);
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const t=l.text;
+
+      if(/DATA\s*CONTABILE/i.test(t)||/ATM\s*WEB/i.test(t))continue;
+      if(/BANCO\s*BPM/i.test(t))continue;
+      if(/ESTRATTO\s*CONTO/i.test(t))continue;
+      if(/pagina\s*\d/i.test(t))continue;
+      if(/INDEX:/i.test(t))continue;
+      if(/Data\s*di\s*riferimento/i.test(t))continue;
+      if(/Del\s*conto/i.test(t))continue;
+      if(/SALDO\s*(INIZIALE|FINALE)/i.test(t))continue;
+      if(/DIVISA|INVIO|Intestato|COORDINATE|PRESSO|SWIFT/i.test(t))continue;
+      if(/^\s*APP\s*\*1/i.test(t))continue;
+      if(/CIN\s+ABI/i.test(t))continue;
+      if(/^IT\s+\d{2}\s+\w\s+\d{5}/i.test(t))continue;
+      if(/ECITA/i.test(t))continue;
+      if(/NOBIL GROUP|SESTIERE|VENEZIA/i.test(t)&&!/NUMIA|BON\.|SDD|VS\.DISP|COMMISSIONI/i.test(t))continue;
+
+      const dm=t.match(/^(\d{2}\/\d{2}\/\d{2})\s+(\d{2}\/\d{2}\/\d{2})\s+(\d{2}\/\d{2}\/\d{2})\s+(.*)/);
+      if(dm){
+        if(cur&&cur.date)mov.push(cur);
+
+        const dataC=pDate(dm[1]);
+        const dataV=pDate(dm[2]);
+        let rest=dm[4].trim();
+
+        let uscite=0,entrate=0,description='';
+        let foundAmtFromItems=false;
+        let descFromItems=[];
+
+        for(const it of l.items){
+          const x=it.x;
+          const txt=it.t.trim();
+          if(/^\d{2}\/\d{2}\/\d{2}$/.test(txt))continue;
+          if(txt==='-'&&x>140&&x<210)continue;
+
+          // Single-token negative amount, e.g. "-250,00" — uscita
+          const negAmt=txt.match(/^-([\d\.]+,\d{2})(.*)/);
+          if(negAmt&&x>140&&x<280){
+            const val=pNum(negAmt[1]);
+            if(val!==null){
+              uscite=val;
+              foundAmtFromItems=true;
+              if(negAmt[2]&&negAmt[2].trim())descFromItems.push(negAmt[2].trim());
+              continue;
+            }
+          }
+
+          const amtMatch=txt.match(/^([\d\.]+,\d{2})(.*)/);
+          if(amtMatch&&x>140){
+            const val=pNum(amtMatch[1]);
+            if(val!==null){
+              const prevItems=l.items.filter(pi=>pi.x<x&&pi.x>x-30&&pi.t.trim()==='-');
+              if(prevItems.length>0||x<200){
+                uscite=val;
+                foundAmtFromItems=true;
+              }else if(x<340){
+                // Entrate column (~284-330). Older PDFs: ~210-260; newer PDFs may
+                // join the amount with the description as a single token.
+                entrate=val;
+                foundAmtFromItems=true;
+              }
+              if(amtMatch[2]&&amtMatch[2].trim()){
+                descFromItems.push(amtMatch[2].trim());
+              }
+              continue;
+            }
+          }
+
+          if(x>250||(foundAmtFromItems&&x>200)){
+            descFromItems.push(txt);
+          }else if(!foundAmtFromItems&&x>140){
+            if(/^-$/.test(txt))continue;
+            descFromItems.push(txt);
+          }
+        }
+
+        if(foundAmtFromItems){
+          description=descFromItems.join(' ').trim();
+        }else{
+          const uscMatch=rest.match(/^-\s*([\d\.]+,\d{2})\s*(.*)/);
+          if(uscMatch){
+            uscite=pNum(uscMatch[1]);
+            description=uscMatch[2].trim();
+          }else{
+            const entMatch=rest.match(/^([\d\.]+,\d{2})(.*)/);
+            if(entMatch){
+              entrate=pNum(entMatch[1]);
+              description=entMatch[2].trim();
+            }else{
+              description=rest;
+            }
+          }
+        }
+
+        cur={
+          type:'estratto',source:'Banco BPM',bank:'bpm',
+          date:dataC,dateValuta:dataV,
+          description:description.trim(),
+          dare:uscite||0,avere:entrate||0,
+          amount:(entrate||0)-(uscite||0),
+          fileName:fname,_pgIdx:pgIdx,_oy:l.oy,_oh:l.oh
+        };
+      }else if(cur){
+        const cleaned=t.trim();
+        if(cleaned.length>1&&!/^pagina/i.test(cleaned)&&!/BANCO\s*BPM/i.test(cleaned)&&
+           !/INDEX:/i.test(cleaned)&&!/Del\s*conto/i.test(cleaned)&&
+           !/Data\s*di\s*rif/i.test(cleaned)&&!/ATM|WEB|APP/i.test(cleaned)&&
+           !/DATA\s*CONTABILE/i.test(cleaned)){
+          cur.description+=' '+cleaned;
+        }
+      }
+    }
+  }
+  if(cur&&cur.date)mov.push(cur);
+  return mov;
+}
+
+// ===== BANCA DELLA MARCA (BCC) PARSER =====
+function parseBCC(pages,fname){
+  const mov=[];
+  let cur=null;
+  let inMov=false;
+
+  for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
+    const pgItems=pages[pgIdx];
+    const lines=buildLines(pgItems);
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const t=l.text;
+
+      if(/DETTAGLIO\s*MOVIMENTI/i.test(t)){inMov=true;continue}
+      if(/RIEPILOGO/i.test(t)&&!/ESTRATTO/i.test(t)){inMov=false;continue}
+      if(/^DATA\s+VALUTA/i.test(t))continue;
+      if(/Pagina\s*\d/i.test(t))continue;
+      if(/Banca della Marca/i.test(t))continue;
+      if(/COORDINATE/i.test(t))continue;
+      if(/ESTRATTO\s*AL/i.test(t))continue;
+      if(/DEL\s*CONTO/i.test(t))continue;
+      if(/C\/C\s*DI/i.test(t))continue;
+      if(/PRESSO/i.test(t))continue;
+      if(/^IBAN/i.test(t)||/^BIC/i.test(t))continue;
+      if(/SALDO\s*(INIZIALE|FINALE)/i.test(t))continue;
+      if(/Codice\s*Fiscale/i.test(t))continue;
+      if(/Iscritta/i.test(t))continue;
+      if(/Via\s*G\./i.test(t))continue;
+      if(/Imprese\s*di/i.test(t))continue;
+      if(/Cooperativo/i.test(t)&&!/Incassi|Bonifico|Pagamento/i.test(t))continue;
+      if(/^\s*$/.test(t))continue;
+      if(/^CIN\s+C\.ABI/i.test(t))continue;
+      if(/^IT\s+81/i.test(t))continue;
+      if(/^ICRAITRRU/i.test(t))continue;
+      if(/^N\.\s*CONTO/i.test(t))continue;
+
+      if(!inMov)continue;
+
+      const dm=t.match(/^(\d{2}\/\d{2}\/\d{2})\s+(\d{2}\/\d{2}\/\d{2}|\*{3,})\s+(.*)/);
+      if(dm){
+        if(cur&&cur.date)mov.push(cur);
+        if(dm[2].includes('*')){cur=null;continue}
+
+        const data=pDate(dm[1]);
+        const valuta=pDate(dm[2]);
+        let rest=dm[3].trim();
+
+        let movDare=0,movAvere=0,description='';
+        const numericItems=[];
+        const descParts=[];
+
+        for(const it of l.items){
+          const x=it.x;
+          const txt=it.t.trim();
+          if(/^\d{2}\/\d{2}\/\d{2}$/.test(txt))continue;
+          if(txt==='********')continue;
+
+          const isAmt=/^[\d\.]+,\d{2}$/.test(txt);
+          if(isAmt&&x>70&&x<180){
+            numericItems.push({val:pNum(txt),x});
+          }else if(x>160||(!isAmt&&x>100)){
+            if(txt.length>0)descParts.push(txt);
+          }
+        }
+
+        if(numericItems.length>=2){
+          numericItems.sort((a,b)=>a.x-b.x);
+          movDare=numericItems[0].val;
+          movAvere=numericItems[1].val;
+        }else if(numericItems.length===1){
+          const ni=numericItems[0];
+          if(ni.x<130){movDare=ni.val}else{movAvere=ni.val}
+        }
+
+        description=descParts.join(' ').trim();
+
+        if(movDare===0&&movAvere===0){
+          const nums=[];
+          const re=/[\d\.]+,\d{2}/g;
+          let m;
+          while((m=re.exec(rest))!==null)nums.push({v:m[0],idx:m.index,end:m.index+m[0].length});
+          if(nums.length>=2){
+            movDare=pNum(nums[0].v);movAvere=pNum(nums[1].v);
+            description=rest.substring(nums[1].end).trim();
+          }else if(nums.length===1){
+            movAvere=pNum(nums[0].v);
+            description=rest.substring(nums[0].end).trim();
+          }else{
+            description=rest;
+          }
+        }
+
+        cur={
+          type:'estratto',source:'Banca della Marca (BCC)',bank:'bcc',
+          date:data,dateValuta:valuta,
+          description:description.trim(),
+          dare:movDare||0,avere:movAvere||0,
+          amount:(movAvere||0)-(movDare||0),
+          fileName:fname,_pgIdx:pgIdx,_oy:l.oy,_oh:l.oh
+        };
+      }else if(cur&&inMov){
+        const cleaned=l.items
+          .filter(it=>it.x>160&&!/^[\d\.]+,\d{2}$/.test(it.t.trim()))
+          .map(it=>it.t).join(' ').trim();
+        if(cleaned.length>1)cur.description+=' '+cleaned;
+      }
+    }
+  }
+  if(cur&&cur.date)mov.push(cur);
+  return mov;
+}
+
+// ===== VOLKSBANK PARSER =====
+function parseVolksbank(pages,fname){
+  const mov=[];
+  let cur=null;
+  let inMovSection=false;
+
+  for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
+    const pgItems=pages[pgIdx];
+    const lines=buildLines(pgItems);
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const t=l.text;
+
+      if(/Descrizione\s*operazioni/i.test(t)&&/Data/i.test(t)){inMovSection=true;continue}
+
+      if(!inMovSection)continue;
+      if(/Volksbank/i.test(t)&&!/Bonifico|Pagamento|Addebito|Versamento|Commissioni|Disposizione/i.test(t))continue;
+      if(/Südtiroler/i.test(t))continue;
+      if(/BPAAIT/i.test(t)&&t.trim().length<20)continue;
+      if(/Pag\.\s*\d+\s*di\s*\d/i.test(t))continue;
+      if(/ESTRATTO\s*CONTO/i.test(t))continue;
+      if(/CONTO\s*CORRENTE\s*N/i.test(t))continue;
+      if(/Filiale|BIC|IBAN|Telefono|e-mail/i.test(t)&&!/Bonifico|Pagamento/i.test(t))continue;
+      if(/DIP\.\s*\d/i.test(t)&&t.trim().length<15)continue;
+      if(/Contact\s*Center/i.test(t))continue;
+      if(/Verifica\s*del\s*Beneficiario/i.test(t))continue;
+      if(/In\s*mancanza\s*di\s*opposizione/i.test(t))continue;
+      if(/Imposta\s*di\s*bollo\s*assolta/i.test(t))continue;
+      if(/www\./i.test(t))continue;
+      if(/capitale\s*sociale/i.test(t))continue;
+      if(/Handelsregister/i.test(t))continue;
+      if(/Fondo\s*Interbancario/i.test(t))continue;
+      if(/^\d{3}\//i.test(t)&&t.trim().length<30&&!/Bonifico|Pagamento/i.test(t))continue;
+
+      if(/SALDO\s*(INIZIALE|FINALE)/i.test(t))continue;
+      if(/TOTALI\s*DEI\s*MOVIMENTI/i.test(t))continue;
+
+      const dm=t.match(/^(\d{2}\/\d{2})\s+(\d{2}\/\d{2}\/\d{2,4})?\s*(.*)/);
+      if(dm&&/^\d{2}\/\d{2}$/.test(dm[1])){
+        if(cur&&cur.date)mov.push(cur);
+
+        const datePart=dm[1];
+        const valutaRaw=dm[2]||'';
+        let year='2025';
+        if(valutaRaw){
+          const vm=valutaRaw.match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
+          if(vm){
+            year=vm[3].length===2?'20'+vm[3]:vm[3];
+          }
+        }
+        const dateStr=datePart+'/'+year;
+        const date=pDate(dateStr);
+        const dateValuta=valutaRaw?pDate(valutaRaw):date;
+
+        let movDare=0,movAvere=0;
+        const descParts=[];
+
+        for(const it of l.items){
+          const x=it.x;
+          const txt=it.t.replace(/[ ]/g,'').trim();
+          if(!txt)continue;
+          if(/^\d{2}\/\d{2}(\/\d{2,4})?$/.test(txt))continue;
+
+          const cleanTxt=txt.replace(/\s/g,'');
+          const isAmt=/^[\d\.]+,\d{2}$/.test(cleanTxt);
+          if(isAmt&&x>110&&x<270){
+            const val=pNum(txt);
+            if(val!==null){
+              if(x>200){movAvere=val}
+              else{movDare=val}
+            }
+          }else{
+            if(x>270)descParts.push(txt);
+          }
+        }
+
+        cur={
+          type:'estratto',source:'Volksbank',bank:'volksbank',
+          date,dateValuta,
+          description:descParts.join(' ').trim(),
+          dare:movDare||0,avere:movAvere||0,
+          amount:(movAvere||0)-(movDare||0),
+          fileName:fname,_pgIdx:pgIdx,_oy:l.oy,_oh:l.oh
+        };
+      }else if(cur){
+        const cleaned=l.items
+          .filter(it=>{
+            const x=it.x;
+            const txt=it.t.replace(/[ ]/g,'').trim();
+            return x>270&&txt.length>0&&!/^[\d\.]+,\d{2}$/.test(txt.replace(/\s/g,''));
+          })
+          .map(it=>it.t.replace(/[ ]/g,'').trim()).join(' ').trim();
+        if(cleaned.length>1&&!/^Pag\./i.test(cleaned)&&!/Volksbank/i.test(cleaned)&&
+           !/ESTRATTO/i.test(cleaned)&&!/Movimenti/i.test(cleaned))
+          cur.description+=' '+cleaned;
+      }
+    }
+  }
+  if(cur&&cur.date)mov.push(cur);
+  return mov.filter(m=>(m.dare>0||m.avere>0));
+}
+
+// ===== MONTE DEI PASCHI DI SIENA PARSER =====
+// MPS estratto conto layout:
+//   Data (DD/MM)        x ~25
+//   Valuta (DD/MM/YY)   x ~52
+//   Descrizione         x ~89-260
+//   Uscite              x ~440-470 (right-aligned)
+//   Entrate             x ~540-560 (right-aligned)
+function parseMPS(pages,fname){
+  const mov=[];
+  let cur=null;
+  let inMov=false;
+  let curYear='2025';
+
+  for(let pgIdx=0;pgIdx<pages.length;pgIdx++){
+    const pgItems=pages[pgIdx];
+    const lines=buildLines(pgItems);
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const t=l.text;
+
+      // Capture period year for date completion (data column has only DD/MM)
+      const ym=t.match(/Periodo\s*di\s*riferimento:?\s*\d{2}\/\d{2}\/(\d{4})/i);
+      if(ym)curYear=ym[1];
+      const ym2=t.match(/^al\s+\d{2}\/\d{2}\/(\d{4})/i);
+      if(ym2)curYear=ym2[1];
+
+      // Toggle movement section
+      if(/Dettaglio\s+operazioni/i.test(t)){if(cur&&cur.date){mov.push(cur);cur=null}inMov=true;continue}
+      if(/Sintesi\s+operazioni/i.test(t)||/Riepilogo\s+conto/i.test(t)){if(cur&&cur.date){mov.push(cur);cur=null}inMov=false;continue}
+      if(!inMov)continue;
+
+      // Skip headers / non-movement noise
+      if(/^Data\s+Valuta/i.test(t))continue;
+      if(/Descrizione\s+operazione/i.test(t))continue;
+      if(/Saldo\s+(iniziale|finale)/i.test(t))continue;
+      if(/Pag\.\s*\d/i.test(t))continue;
+      if(/MONTE\s*DEI\s*PASCHI/i.test(t)||/BANCAMONTEDEIPASCHI/i.test(t))continue;
+      if(/Estratto\s+Conto\s+n\./i.test(t))continue;
+      if(/Periodo\s*di\s*riferimento/i.test(t))continue;
+      if(/^Conto\s+corrente/i.test(t))continue;
+      if(/^IBAN/i.test(t)||/^BIC/i.test(t))continue;
+      if(/Mod\.\s*5000/i.test(t))continue;
+      if(/Codice\s+Fiscale/i.test(t))continue;
+      if(/www\.mps\.it/i.test(t))continue;
+      if(/Fondo\s+Interbancario/i.test(t))continue;
+      if(/Capitale\s+Sociale/i.test(t))continue;
+
+      // Movement row: DD/MM  DD/MM/YY  description  amount
+      const dm=t.match(/^(\d{2}\/\d{2})\s+(\d{2}\/\d{2}\/\d{2,4})\s+(.*)/);
+      if(dm){
+        if(cur&&cur.date)mov.push(cur);
+
+        const dateStr=dm[1]+'/'+curYear;
+        const date=pDate(dateStr);
+        const dateValuta=pDate(dm[2]);
+
+        let descParts=[],uscite=0,entrate=0;
+        for(const it of l.items){
+          const x=it.x;
+          const txt=it.t.trim();
+          if(/^\d{2}\/\d{2}(\/\d{2,4})?$/.test(txt))continue;
+          const isAmt=/^[\d\.]+,\d{2}$/.test(txt);
+          if(isAmt){
+            const v=pNum(txt);
+            if(v!==null){
+              if(x>=520)entrate=v;
+              else if(x>=400)uscite=v;
+            }
+          }else if(x>=80&&x<400){
+            descParts.push(txt);
+          }
+        }
+
+        cur={
+          type:'estratto',source:'Monte dei Paschi di Siena',bank:'mps',
+          date,dateValuta,
+          description:descParts.join(' ').trim(),
+          dare:uscite||0,avere:entrate||0,
+          amount:(entrate||0)-(uscite||0),
+          fileName:fname,_pgIdx:pgIdx,_oy:l.oy,_oh:l.oh
+        };
+      }else if(cur){
+        const descParts=[];
+        for(const it of l.items){
+          const x=it.x;
+          const txt=it.t.trim();
+          if(/^[\d\.]+,\d{2}$/.test(txt))continue;
+          if(/^\d{2}\/\d{2}(\/\d{2,4})?$/.test(txt))continue;
+          if(x>=80&&x<400)descParts.push(txt);
+        }
+        const cleaned=descParts.join(' ').trim();
+        if(cleaned.length>1&&!/^Pag\./i.test(cleaned)&&!/MONTE\s*DEI\s*PASCHI/i.test(cleaned))
+          cur.description+=' '+cleaned;
+      }
+    }
+  }
+  if(cur&&cur.date)mov.push(cur);
+  return mov.filter(m=>(m.dare>0||m.avere>0));
+}
+
+// ===== ONE-CLICK: EXTRACT + RECONCILE =====
+async function runAll(){
+  if(typeof quotaReached==='function'&&quotaReached()){
+    const plan=PLAN_LABEL[(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free'];
+    if(confirm('Hai raggiunto il limite del piano '+plan+' ('+CURRENT_COUNT+' analisi questo mese).\n\nPassa al piano Pro per analisi illimitate.\n\nVai alla pagina dei piani?')){
+      goSection('pricing');
+    }
+    return;
+  }
+  const aName=$('analysis-name').value.trim();
+  if(!aName){alert('Inserisci un nome per l\'analisi.');return;}
+  S.analysisName=aName;
+  const prog=$('prog'),pf=$('prog-f'),pt=$('prog-t');
+  const bbLoader=$('bb-loader'),bbText=$('bb-text');
+  if(bbLoader)bbLoader.classList.add('on');
+  if(bbText)bbText.textContent='Avvio analisi...';
+  $('btn-go').disabled=true;
+  S.pm=[];S.em=[];S.ecFiles={};S.partFiles={};
+
+  const total=S.pf.length+S.ef.length;
+  let done=0;
+
+  for(const file of S.pf){
+    try{
+      file._st='ld';file._stx='Elaborando...';renFL('p');
+      log('Parsing partitario: '+file.name);
+      pt.textContent='Elaborazione partitario: '+file.name;if(bbText)bbText.textContent='Partitario: '+file.name;
+      const pages=await getPDFItems(file);
+      const m=parsePart(pages,file.name);
+      S.pm.push(...m);
+      S.partFiles[file.name]={bytes:pages._bytes,meta:pages._meta};
+      file._st='ok';file._stx=m.length+' mov.';renFL('p');
+      log('  -> '+m.length+' movimenti trovati');
+    }catch(e){
+      console.error(e);file._st='er';file._stx='Errore';renFL('p');
+      log('  ERRORE: '+e.message);
+    }
+    done++;pf.style.width=(done/total*100)+'%';
+  }
+
+  for(const file of S.ef){
+    try{
+      file._st='ld';file._stx='Rilevamento...';renFL('e');
+      log('Rilevamento banca: '+file.name);
+      pt.textContent='Rilevamento banca: '+file.name;if(bbText)bbText.textContent='Rilevamento banca: '+file.name;
+      const pages=await getPDFItems(file);
+      const bank=detectBank(pages);
+      if(bank){
+        file._bk=bank.name;file._st='ld';file._stx='Estrazione...';renFL('e');
+        log('  Banca: '+bank.name+' -> Estrazione...');
+        pt.textContent='Estrazione ('+bank.name+'): '+file.name;if(bbText)bbText.textContent=bank.name+': '+file.name;
+        let m;
+        if(bank.key==='intesa')m=parseIntesa(pages,file.name);
+        else if(bank.key==='bpm')m=parseBPM(pages,file.name);
+        else if(bank.key==='bcc')m=parseBCC(pages,file.name);
+        else if(bank.key==='volksbank')m=parseVolksbank(pages,file.name);
+        else if(bank.key==='mps')m=parseMPS(pages,file.name);
+        else m=[];
+        S.em.push(...m);
+        S.ecFiles[file.name]={bytes:pages._bytes,meta:pages._meta};
+        file._st='ok';file._stx=m.length+' mov.';renFL('e');
+        log('  -> '+m.length+' movimenti trovati');
+      }else{
+        file._st='er';file._stx='Banca non riconosciuta';file._bk='?';renFL('e');
+        log('  ERRORE: banca non riconosciuta');
+      }
+    }catch(e){
+      console.error(e);file._st='er';file._stx='Errore';renFL('e');
+      log('  ERRORE: '+e.message);
+    }
+    done++;pf.style.width=(done/total*100)+'%';
+  }
+
+  log('=== Estrazione completata: '+S.pm.length+' partitari, '+S.em.length+' estratti conto ===');
+
+  if(S.pm.length>0&&S.em.length>0){
+    pt.textContent='Riconciliazione in corso...';if(bbText)bbText.textContent='Riconciliazione in corso...';
+    log('Avvio riconciliazione...');
+    await new Promise(r=>setTimeout(r,50));
+    reconcile();
+    log('=== Riconciliazione completata ===');
+  }
+
+  pt.textContent='Analisi completata';if(bbText)bbText.textContent='Analisi completata';if(bbLoader)bbLoader.classList.remove('on');
+  $('btn-go').disabled=false;
+
+  if(S.res){
+    recordAnalysis();
+    setTimeout(()=>showView('v-results'),300);
+  }
+}
+
+// ===== RECONCILIATION ENGINE =====
+function amtMatch(e,p){
+  const ed=Math.round((e.dare||0)*100),eav=Math.round((e.avere||0)*100);
+  const pd=Math.round((p.dare||0)*100),pav=Math.round((p.avere||0)*100);
+  const ea=Math.round(Math.abs(e.amount)*100),pa=Math.round(Math.abs(p.amount)*100);
+  if(ea>0&&ea===pa)return true;
+  if(ed>0&&pav>0&&ed===pav)return true;
+  if(eav>0&&pd>0&&eav===pd)return true;
+  if(ed>0&&pd>0&&ed===pd)return true;
+  if(eav>0&&pav>0&&eav===pav)return true;
+  return false;
+}
+
+function reconcile(){
+  const R={exact:[],fuzzy:[],ue:[],up:[]};
+  const ec=S.em.map((m,i)=>({...m,_i:i,_m:false}));
+  const pt=S.pm.map((m,i)=>({...m,_i:i,_m:false}));
+
+  const ptByAmt={};
+  for(const p of pt){
+    const keys=new Set();
+    if(p.dare>0)keys.add(Math.round(p.dare*100));
+    if(p.avere>0)keys.add(Math.round(p.avere*100));
+    const pa=Math.round(Math.abs(p.amount)*100);
+    if(pa>0)keys.add(pa);
+    for(const k of keys){
+      if(!ptByAmt[k])ptByAmt[k]=[];
+      ptByAmt[k].push(p);
+    }
+  }
+
+  function findPtCandidates(e){
+    const keys=new Set();
+    if(e.dare>0)keys.add(Math.round(e.dare*100));
+    if(e.avere>0)keys.add(Math.round(e.avere*100));
+    const ea=Math.round(Math.abs(e.amount)*100);
+    if(ea>0)keys.add(ea);
+    const cands=new Set();
+    for(const k of keys){
+      if(ptByAmt[k])for(const p of ptByAmt[k])if(!p._m)cands.add(p);
+    }
+    return[...cands];
+  }
+
+  for(const e of ec){
+    if(e._m)continue;
+    const cands=findPtCandidates(e);
+    let best=null;
+    for(const p of cands){
+      if(amtMatch(e,p)&&e.date===p.date){best=p;break}
+    }
+    if(best){R.exact.push({ec:e,pt:best,score:1.0});e._m=true;best._m=true}
+  }
+
+  for(const e of ec){
+    if(e._m)continue;
+    const cands=findPtCandidates(e);
+    let best=null,bestDD=999;
+    for(const p of cands){
+      if(!amtMatch(e,p))continue;
+      const dd=dayDiff(e.date,p.date);
+      if(dd!==null&&dd<=5&&dd<bestDD){bestDD=dd;best=p}
+    }
+    if(best){
+      const sc=0.95-bestDD*0.02;
+      R.exact.push({ec:e,pt:best,score:sc});e._m=true;best._m=true;
+    }
+  }
+
+  for(const e of ec){
+    if(e._m)continue;
+    const cands=findPtCandidates(e);
+    let best=null,bestDD=999;
+    for(const p of cands){
+      if(!amtMatch(e,p))continue;
+      const dd=dayDiff(e.date,p.date);
+      if(dd!==null&&dd<=15&&dd<bestDD){bestDD=dd;best=p}
+    }
+    if(best){
+      const sc=0.88-bestDD*0.02;
+      R.exact.push({ec:e,pt:best,score:Math.max(sc,0.55)});e._m=true;best._m=true;
+    }
+  }
+
+  for(const e of ec){
+    if(e._m)continue;
+    const cands=findPtCandidates(e);
+    let best=null,bestDD=999;
+    for(const p of cands){
+      if(!amtMatch(e,p))continue;
+      const dd=dayDiff(e.date,p.date);
+      if(dd!==null&&dd<=45&&dd<bestDD){bestDD=dd;best=p}
+    }
+    if(best){
+      const sc=Math.max(0.75-bestDD*0.01,0.40);
+      R.fuzzy.push({ec:e,pt:best,score:sc});e._m=true;best._m=true;
+    }
+  }
+
+  for(const e of ec){
+    if(e._m)continue;
+    let best=null,bs=0;
+    for(const p of pt){
+      if(p._m)continue;
+      const sc=fuzzyScore(e,p);
+      if(sc>0.35&&sc>bs){bs=sc;best=p}
+    }
+    if(best){R.fuzzy.push({ec:e,pt:best,score:bs});e._m=true;best._m=true}
+  }
+
+  R.ue=ec.filter(m=>!m._m);
+  R.up=pt.filter(m=>!m._m);
+  S.res=R;
+
+  $('s-pm').textContent=S.pm.length;
+  $('s-em').textContent=ec.length;
+  $('s-ex').textContent=R.exact.length;
+  $('s-fz').textContent=R.fuzzy.length;
+  $('s-un').textContent=R.ue.length;
+  $('cn-ex').textContent='('+R.exact.length+')';
+  $('cn-fz').textContent='('+R.fuzzy.length+')';
+  $('cn-ue').textContent='('+R.ue.length+')';
+  $('cn-up').textContent='('+R.up.length+')';
+
+  renderRec();
+}
+
+function fuzzyScore(e,p){
+  let sc=0;
+  const ea=Math.abs(e.amount),pa=Math.abs(p.amount);
+  const eDare=e.dare||0,eAvere=e.avere||0;
+  const pDare=p.dare||0,pAvere=p.avere||0;
+
+  let bestAmtSim=0;
+  const pairs=[[ea,pa],[eDare,pAvere],[eAvere,pDare],[eDare,pDare],[eAvere,pAvere]];
+  for(const[a,b] of pairs){
+    if(a>0&&b>0){
+      const mx=Math.max(a,b);
+      const sim=1-Math.abs(a-b)/mx;
+      if(sim>bestAmtSim)bestAmtSim=sim;
+    }
+  }
+
+  if(bestAmtSim>0.95)sc+=0.5;
+  else if(bestAmtSim>0.9)sc+=0.4;
+  else if(bestAmtSim>0.8)sc+=0.25;
+  else return 0;
+
+  const dd=dayDiff(e.date,p.date);
+  if(dd!==null){
+    if(dd===0)sc+=0.3;
+    else if(dd<=1)sc+=0.25;
+    else if(dd<=3)sc+=0.2;
+    else if(dd<=7)sc+=0.1;
+    else if(dd<=15)sc+=0.05;
+    else if(sc<0.5)return 0;
+  }
+
+  sc+=descSim(e.description,p.description)*0.2;
+  return sc;
+}
+
+function descSim(a,b){
+  if(!a||!b)return 0;
+  a=a.toLowerCase().replace(/[^a-z0-9àèéìòù]/g,' ').replace(/\s+/g,' ').trim();
+  b=b.toLowerCase().replace(/[^a-z0-9àèéìòù]/g,' ').replace(/\s+/g,' ').trim();
+  const wa=new Set(a.split(' ').filter(w=>w.length>2));
+  const wb=new Set(b.split(' ').filter(w=>w.length>2));
+  if(!wa.size||!wb.size)return 0;
+  let c=0;for(const w of wa)if(wb.has(w))c++;
+  return c/Math.max(wa.size,wb.size);
+}
+
+function dayDiff(d1,d2){
+  if(!d1||!d2)return null;
+  try{
+    const[a,b,c]=d1.split('/').map(Number);
+    const[d,e,f]=d2.split('/').map(Number);
+    return Math.abs(Math.round((new Date(c,b-1,a)-new Date(f,e-1,d))/864e5));
+  }catch{return null}
+}
+
+// ===== RENDER RECONCILIATION =====
+function fmtAmt(m,type){
+  if(type==='ec'){
+    if(m.dare>0)return`<span style="color:var(--red)">-${fmtN(m.dare)}</span>`;
+    if(m.avere>0)return`<span style="color:var(--green)">+${fmtN(m.avere)}</span>`;
+  }else{
+    if(m.dare>0)return`<span style="color:var(--green)">${fmtN(m.dare)}</span>`;
+    if(m.avere>0)return`<span style="color:var(--red)">${fmtN(m.avere)}</span>`;
+  }
+  return fmtN(Math.abs(m.amount));
+}
+
+function renderRec(){
+  const R=S.res;if(!R)return;
+  const sortByDate=(a,b)=>{
+    const da=a.ec.date.split('/').reverse().join('');
+    const db=b.ec.date.split('/').reverse().join('');
+    return da.localeCompare(db);
+  };
+  const matchRow=({ec,pt})=>`<tr>
+    <td>${ec.date}</td><td class="desc-cell" title="${esc(ec.description)}">${ec.description}</td>
+    <td class="am">${fmtAmt(ec,'ec')}</td>
+    <td>${pt.date}</td><td class="desc-cell" title="${esc(pt.description)}">${pt.description}</td>
+    <td class="am">${fmtAmt(pt,'pt')}</td>
+  </tr>`;
+  $('tb-ex').innerHTML=[...R.exact].sort(sortByDate).map(matchRow).join('');
+  $('tb-fz').innerHTML=[...R.fuzzy].sort(sortByDate).map(matchRow).join('');
+
+  const sortByDateSingle=(a,b)=>{
+    const da=a.date.split('/').reverse().join('');
+    const db=b.date.split('/').reverse().join('');
+    return da.localeCompare(db);
+  };
+  $('tb-ue').innerHTML=[...R.ue].sort(sortByDateSingle).map(m=>`<tr>
+    <td><span class="tag">${m.source}</span></td>
+    <td>${m.date}</td><td>${m.dateValuta||''}</td>
+    <td class="desc-cell" title="${esc(m.description)}">${m.description}</td>
+    <td class="am dare">${m.dare?fmtN(m.dare):''}</td><td class="am avere">${m.avere?fmtN(m.avere):''}</td>
+  </tr>`).join('');
+
+  $('tb-up').innerHTML=[...R.up].sort(sortByDateSingle).map(m=>`<tr>
+    <td><span class="tag">${m.source}</span></td>
+    <td>${m.date}</td>
+    <td class="desc-cell" title="${esc(m.description)}">${m.description}</td>
+    <td class="am dare">${m.dare?fmtN(m.dare):''}</td><td class="am avere">${m.avere?fmtN(m.avere):''}</td>
+  </tr>`).join('');
+}
+
+function filtRec(){
+  const type=$('fr-type').value,desc=$('fr-desc').value.toLowerCase();
+  [['ex','exact'],['fz','fuzzy'],['ue','none'],['up','none']].forEach(([id,mt])=>{
+    const pn=$('pn-'+id),st=$('st-'+id);
+    if(type!=='all'&&mt!==type){pn.style.display='none';st.style.display='none';return}
+    pn.style.display='';st.style.display='';
+    pn.querySelectorAll('tbody tr').forEach(r=>{
+      let show=true;
+      const txt=r.textContent.toLowerCase();
+      if(desc&&!txt.includes(desc))show=false;
+      r.style.display=show?'':'none';
+    });
+  });
+}
+
+// ===== EXPORT =====
+async function downloadAnnotatedPDFs(){
+  console.log('[downloadAnnotatedPDFs] start');
+  if(!S.res){alert('Nessun risultato da esportare. Esegui prima un\'analisi.');return;}
+  const btn=$('btn-dl');
+  const origLabel=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Generazione in corso...';}
+  try{
+  const R=S.res;
+
+  const ecStatus={};
+  R.exact.forEach(({ec})=>{ecStatus[ec._i]='exact'});
+  R.fuzzy.forEach(({ec})=>{ecStatus[ec._i]='fuzzy'});
+  R.ue.forEach(m=>{ecStatus[m._i]='none'});
+
+  const ptStatus={};
+  R.exact.forEach(({pt})=>{ptStatus[pt._i]='exact'});
+  R.fuzzy.forEach(({pt})=>{ptStatus[pt._i]='fuzzy'});
+  R.up.forEach(m=>{ptStatus[m._i]='none'});
+
+  const byFile={};
+  S.em.forEach((m,i)=>{
+    const fn=m.fileName;
+    if(!fn)return;
+    if(!byFile[fn])byFile[fn]=[];
+    byFile[fn].push({...m,_idx:i,_kind:'ec'});
+  });
+
+  const byPartFile={};
+  S.pm.forEach((m,i)=>{
+    const fn=m.fileName;
+    if(!fn)return;
+    if(!byPartFile[fn])byPartFile[fn]=[];
+    byPartFile[fn].push({...m,_idx:i,_kind:'pt'});
+  });
+
+  const ecNames=Object.keys(byFile);
+  const ptNames=Object.keys(byPartFile);
+  if(ecNames.length===0&&ptNames.length===0){alert('Nessun file da annotare.');return;}
+
+  const colors={
+    exact:  {r:0.13,g:0.59,b:0.33},
+    fuzzy:  {r:0.90,g:0.55,b:0.00},
+    none:   {r:0.90,g:0.20,b:0.15}
+  };
+
+  // Build job list: each job = {fname, kind, movs, fdata, statusMap}
+  const jobs=[];
+  for(const fname of ecNames)jobs.push({fname,kind:'ec',movs:byFile[fname],fdata:S.ecFiles[fname],statusMap:ecStatus});
+  for(const fname of ptNames)jobs.push({fname,kind:'pt',movs:byPartFile[fname],fdata:S.partFiles[fname],statusMap:ptStatus});
+
+  log('Generazione PDF annotati: '+jobs.length+' file ('+ecNames.length+' EC + '+ptNames.length+' partitari)...');
+  const prepared=[];
+  let fileIdx=0;
+  const fileNames=jobs.map(j=>j.fname);
+
+  for(const job of jobs){
+    fileIdx++;
+    const{fname,kind,movs,fdata,statusMap}=job;
+    if(btn)btn.textContent='Annotazione '+fileIdx+'/'+jobs.length+'...';
+    if(!fdata||!fdata.bytes){log('Attenzione: dati PDF non trovati per '+fname);continue;}
+
+    let annotated=0,skipped=0;
+    let pdfBytes;
+
+    try{
+      log(fname+' ('+(kind==='ec'?'EC':'Partitario')+'): annotazione vettoriale...');
+      const t0=performance.now();
+      const pdfDoc=await PDFLib.PDFDocument.load(fdata.bytes.slice(0),{ignoreEncryption:true});
+      const pages=pdfDoc.getPages();
+
+      const movsByPage={};
+      for(const m of movs){if(m._pgIdx!=null){if(!movsByPage[m._pgIdx])movsByPage[m._pgIdx]=[];movsByPage[m._pgIdx].push(m)}}
+
+      for(let p=0;p<pages.length;p++){
+        const page=pages[p];
+        const{width:pw,height:ph}=page.getSize();
+        const pgMovs=movsByPage[p]||[];
+        for(const m of pgMovs){
+          const st=statusMap[m._idx]||'none';
+          const col=colors[st];
+          if(m._oy==null){skipped++;continue;}
+          const fh=m._oh||10;
+          // _oy is the text baseline in PDF native coords (origin bottom-left).
+          // Highlight covers from a bit below baseline to a bit above the cap height.
+          const y=m._oy-2;
+          const h=fh+4;
+          const rgb=PDFLib.rgb(col.r,col.g,col.b);
+          page.drawRectangle({x:0,y,width:pw,height:h,color:rgb,opacity:0.15});
+          page.drawRectangle({x:0,y,width:8,height:h,color:rgb,opacity:0.9});
+          annotated++;
+        }
+      }
+
+      // Legend on first page (top-right corner, small)
+      if(pages.length>0){
+        const fp=pages[0];
+        const{width:fw,height:fhp}=fp.getSize();
+        const lx=fw-160,ly=fhp-18;
+        const helv=await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const drawLegItem=(off,r,g,b,label)=>{
+          fp.drawRectangle({x:lx+off,y:ly,width:6,height:6,color:PDFLib.rgb(r,g,b)});
+          fp.drawText(label,{x:lx+off+8,y:ly,size:5,font:helv,color:PDFLib.rgb(0.3,0.3,0.3)});
+        };
+        drawLegItem(0,0.13,0.59,0.33,'Match');
+        drawLegItem(40,0.90,0.55,0.00,'Approx.');
+        drawLegItem(95,0.90,0.20,0.15,'Non trovato');
+      }
+
+      pdfBytes=await pdfDoc.save({useObjectStreams:true});
+      const dt=Math.round(performance.now()-t0);
+      log(fname+': '+annotated+' righe annotate, '+skipped+' saltate ('+dt+' ms)');
+    }catch(e){
+      log('ERRORE annotazione '+fname+': '+e.message);
+      console.error('Annotation error for '+fname,e);
+      continue;
+    }
+
+    const prefix=kind==='pt'?'partitario_':'ec_';
+    prepared.push({fname:prefix+fname,pdfBytes});
+  }
+
+  if(prepared.length===0){
+    alert('Nessun PDF è stato generato. Controlla il log per dettagli.');
+    return;
+  }
+
+  const safeName=(S.analysisName||'Analisi').replace(/[^a-zA-Z0-9àèéìòùÀÈÉÌÒÙ _\-]/g,'').replace(/\s+/g,'_');
+
+  if(prepared.length>1){
+    log('Creazione archivio ZIP con '+prepared.length+' PDF...');
+    const zip=new JSZip();
+    for(const{fname,pdfBytes} of prepared){
+      zip.file(safeName+'_'+fname,pdfBytes);
+    }
+    const zipBlob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+    const url=URL.createObjectURL(zipBlob);
+    const a=document.createElement('a');
+    a.href=url;a.download=safeName+'_Annotati.zip';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    log('Scaricato: '+safeName+'_Annotati.zip ('+prepared.length+' file)');
+  }else if(prepared.length===1){
+    const{fname,pdfBytes}=prepared[0];
+    const blob=new Blob([pdfBytes],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=safeName+'_'+fname;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    log('Scaricato: '+safeName+'_'+fname);
+  }
+  log('=== Download completato ===');
+  }catch(err){
+    console.error('[downloadAnnotatedPDFs]',err);
+    alert('Errore annotazione PDF: '+(err&&err.message?err.message:err));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=origLabel;}
+  }
+}
+</script>
+<script defer src="cookie-banner.js"></script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 {
+  "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/riconciliazione.html" }
+    { "source": "/riconciliazione", "destination": "/app.html" },
+    { "source": "/riconciliazione.html", "destination": "/app.html" }
   ]
 }
