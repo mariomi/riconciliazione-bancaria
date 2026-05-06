@@ -9,7 +9,13 @@
 <script>
 (function(){
   var key='sb-vboflwsbwllbdidifxzq-auth-token';
-  if(!localStorage.getItem(key)){window.location.replace('login.html');}
+  if(localStorage.getItem(key))return;
+  // OAuth implicit flow: token arrives in URL hash. Let supabase-js consume it.
+  if(window.location.hash.indexOf('access_token=')!==-1)return;
+  // PKCE / code-grant flow: ?code=... or ?error=...
+  var qs=window.location.search;
+  if(qs.indexOf('code=')!==-1||qs.indexOf('error=')!==-1)return;
+  window.location.replace('login.html');
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">

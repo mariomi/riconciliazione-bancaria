@@ -42,16 +42,16 @@ window.AUTH = {
   },
 
   // Hard guard: redirect to login if no session. Call early.
+  // Uses getSession() which handles OAuth URL hash parsing on first load.
   async requireAuth() {
-    if (!this.hasLocalSession()) { window.location.replace('login.html'); return null; }
     const s = await this.session();
     if (!s) { window.location.replace('login.html'); return null; }
     return s;
   },
 
-  // For login/register pages: redirect to app if already logged in
+  // For login/register pages: redirect to app if already logged in.
+  // Also redirects when OAuth callback hash is present (post-Google login).
   async redirectIfAuthed() {
-    if (!this.hasLocalSession()) return;
     const s = await this.session();
     if (s) window.location.replace('app.html');
   }
