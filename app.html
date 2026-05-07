@@ -1204,6 +1204,8 @@ async function loadProfileAndUsage(){
     .gte('created_at',startOfMonthISO());
   // When history is disabled, DB count lags behind — use local counter as fallback
   CURRENT_COUNT=Math.max(count||0, _readLocalCount());
+  _LAST_MONTH_LOADED=_monthKey();
+  _cleanOldLocalCounts();
   renderUsage();
   updBtn&&updBtn();
   // Sync history toggle in Settings
@@ -1242,15 +1244,33 @@ function isHistoryEnabled(){return localStorage.getItem(HIST_KEY)==='1'}
 function setHistoryEnabled(v){localStorage.setItem(HIST_KEY,v?'1':'0')}
 
 // Local monthly counter (used when history is disabled — keeps quota client-side)
+// Keyed by YYYY-MM so it auto-resets every 1st of the month: a new key means
+// no value yet → counter starts again from 0.
 function _monthKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function _localCountKey(){return 'reconcilia.count.'+_monthKey()}
 function _bumpLocalCount(){
+  _cleanOldLocalCounts();
   const k=_localCountKey();
   const n=parseInt(localStorage.getItem(k)||'0',10)+1;
   localStorage.setItem(k,String(n));
   return n;
 }
 function _readLocalCount(){return parseInt(localStorage.getItem(_localCountKey())||'0',10)}
+function _cleanOldLocalCounts(){
+  // Drop any monthly counter that is not the current month, so localStorage
+  // doesn't accumulate one key per month forever.
+  const cur=_localCountKey();
+  for(let i=localStorage.length-1;i>=0;i--){
+    const k=localStorage.key(i);
+    if(k && k.indexOf('reconcilia.count.')===0 && k!==cur){
+      localStorage.removeItem(k);
+    }
+  }
+}
+
+// Track the month we last loaded for; if it rolls over while the tab is open
+// (rare but possible on long sessions), force a fresh load.
+let _LAST_MONTH_LOADED=_monthKey();
 
 function onHistoryToggle(on){setHistoryEnabled(on)}
 
@@ -1418,6 +1438,28 @@ async function sendPasswordReset(){
     window.location.replace('login.html');
   }
 })();
+
+// Watch for month rollover while the tab stays open (long sessions or apps
+// left open across midnight on the 1st). Every 5 min compare _LAST_MONTH_LOADED
+// with the current month key; if changed, force a fresh quota load so the
+// counter resets to 0 of the new month without requiring a manual reload.
+setInterval(()=>{
+  try{
+    if(typeof _monthKey!=='function')return;
+    if(_LAST_MONTH_LOADED && _monthKey()!==_LAST_MONTH_LOADED){
+      console.log('[quota] Month rolled over, refreshing usage');
+      loadProfileAndUsage().catch(()=>{});
+    }
+  }catch(e){}
+},5*60*1000);
+
+// Also re-check when the tab regains focus
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && typeof _monthKey==='function'
+     && _LAST_MONTH_LOADED && _monthKey()!==_LAST_MONTH_LOADED){
+    loadProfileAndUsage().catch(()=>{});
+  }
+});
 
 // ===== STATE =====
 const S = { pf:[], ef:[], pm:[], em:[], res:null, ecFiles:{}, partFiles:{} };
@@ -2305,6 +2347,10 @@ function parseMPS(pages,fname){
 
 // ===== ONE-CLICK: EXTRACT + RECONCILE =====
 async function runAll(){
+  // Refresh quota right before checking — handles month rollover during long
+  // sessions (the count is filtered by created_at >= start-of-month, and the
+  // local key is keyed by YYYY-MM, so both reset on the 1st automatically).
+  try{await loadProfileAndUsage();}catch(e){console.warn('quota refresh failed',e)}
   if(typeof quotaReached==='function'&&quotaReached()){
     const plan=PLAN_LABEL[(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free'];
     if(confirm('Hai raggiunto il limite del piano '+plan+' ('+CURRENT_COUNT+' analisi questo mese).\n\nPassa a un piano superiore per più analisi.\n\nVai alla pagina dei piani?')){
