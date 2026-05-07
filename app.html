@@ -1044,7 +1044,7 @@ td.avere{color:var(--green)}
             </div>
             <div id="history-list" class="history-list"></div>
             <div id="history-empty" class="history-empty" style="display:none">
-              Nessuna analisi salvata. Le prossime riconciliazioni che lancerai compariranno qui se hai attivato il salvataggio in Impostazioni.
+              Nessuna analisi salvata. Le prossime riconciliazioni che lancerai compariranno qui.
             </div>
           </div>
         </div>
@@ -1689,6 +1689,12 @@ async function recordAnalysis(){
       num_non_trovati:(R.ue?R.ue.length:0)+(R.up?R.up.length:0),
       matches_data
     });
+    // Invalidate cache so next visit to Storico reloads from DB
+    HISTORY_CACHE=null;
+    // If the Storico tab is currently open, refresh it live
+    if(document.getElementById('sec-history')?.classList.contains('on') && typeof renderHistoryView==='function'){
+      renderHistoryView();
+    }
   }catch(e){console.error('record analysis failed',e);}
 }
 
