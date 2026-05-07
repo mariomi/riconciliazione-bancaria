@@ -302,15 +302,20 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .nav-burger{display:none;width:40px;height:40px;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:transparent;border:0;cursor:pointer;padding:0;z-index:65;position:relative}
 .nav-burger span{display:block;width:22px;height:2px;background:var(--ink);border-radius:2px;transition:transform .25s,opacity .25s}
 @media(max-width:768px){
-  .nav-burger{display:inline-flex}
-  /* MOBILE — drawer chiuso: nav-links nascosta del tutto.
-     Niente trucchi con transform che possono lasciar leakare i bottoni
-     nella navbar (visto sul reale Safari iOS). display:none forza il
-     contenuto fuori dal flow: nessun bottone puo' apparire prima che
-     il drawer venga aperto. */
+  /* HAMBURGER — sempre visibile su mobile e SOPRA il drawer (z-index 1100)
+     cosi' rimane cliccabile anche quando il drawer fullscreen e' aperto */
+  .nav-burger{
+    display:inline-flex;
+    position:relative;
+    z-index:1100;
+  }
+
+  /* DRAWER CHIUSO — nav-links totalmente fuori dal layout.
+     display:none forza il contenuto a non esistere visivamente: nessun
+     bottone puo' leakare nella navbar prima dell'apertura. */
   .nav-links{display:none !important}
 
-  /* MOBILE — drawer aperto: fullscreen overlay con i 5 item al centro */
+  /* DRAWER APERTO — fullscreen overlay con tutti gli item centrati */
   body.nav-open .nav-links{
     display:flex !important;
     position:fixed; inset:0;
@@ -323,8 +328,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     z-index:1000;
     animation:drawer-slide .25s cubic-bezier(.2,.8,.2,1);
   }
-  /* Tutti gli item sempre visibili nel drawer aperto, override su
-     auth-aware-nav.js che potrebbe aver impostato display:none inline */
+  /* Garantisce visibilita' di tutti gli item — override aggressivo su
+     eventuali display:none inline impostati da auth-aware-nav.js */
   body.nav-open .nav-links a,
   body.nav-open .nav-links a.btn,
   body.nav-open .nav-links a.btn-outline,
@@ -337,7 +342,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   }
   body.nav-open .nav-links a.btn{font-size:16px;padding:14px 28px;min-width:200px;justify-content:center}
 
+  /* Lock body scroll mentre il drawer e' aperto */
   body.nav-open{overflow:hidden}
+
+  /* Animazione hamburger → X quando drawer e' aperto */
   body.nav-open .nav-burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
   body.nav-open .nav-burger span:nth-child(2){opacity:0}
   body.nav-open .nav-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
@@ -660,5 +668,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 <script defer src="auth-aware-nav.js"></script>
 <script defer src="cookie-banner.js"></script>
 <script defer src="reveal-on-scroll.js"></script>
+<script defer src="mobile-nav.js"></script>
 </body>
 </html>

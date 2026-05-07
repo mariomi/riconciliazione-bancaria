@@ -96,8 +96,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .nav-burger{display:none;width:40px;height:40px;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:transparent;border:0;cursor:pointer;padding:0;z-index:65;position:relative}
 .nav-burger span{display:block;width:22px;height:2px;background:var(--ink);border-radius:2px;transition:transform .25s,opacity .25s}
 @media(max-width:768px){
-  .nav-burger{display:inline-flex}
-  /* MOBILE — drawer chiuso: nav-links display:none totale, niente leak */
+  /* HAMBURGER sempre sopra il drawer (z-index 1100) cosi' resta cliccabile */
+  .nav-burger{display:inline-flex;position:relative;z-index:1100}
+  /* DRAWER CHIUSO — display:none totale, niente leak */
   .nav-links{display:none !important}
   /* MOBILE — drawer aperto: fullscreen overlay con tutti gli item */
   body.nav-open .nav-links{
@@ -240,5 +241,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 <script defer src="auth-aware-nav.js"></script>
 <script defer src="cookie-banner.js"></script>
 <script defer src="reveal-on-scroll.js"></script>
+<script defer src="mobile-nav.js"></script>
 </body>
 </html>
