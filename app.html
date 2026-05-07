@@ -1309,6 +1309,16 @@ td.avere{color:var(--green)}
           </div>
         </div>
 
+        <div class="settings-card" id="team-info-card" style="display:none">
+          <div class="settings-card-head">Team</div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Sei membro del team di <span id="team-info-owner">—</span></strong>
+              <span>Stai usando il piano del proprietario del team. Le analisi che salvi sono visibili a lui e agli altri membri del team. Solo il proprietario può aggiungere o rimuovere membri.</span>
+            </div>
+          </div>
+        </div>
+
         <div class="settings-card" id="team-card" style="display:none">
           <div class="settings-card-head">Team <span id="team-count-pill" style="font-size:10px;font-weight:600;background:var(--paper);color:var(--ink);padding:2px 8px;border-radius:980px;margin-left:6px;border:1px solid var(--line);text-transform:none;letter-spacing:0">0/0</span></div>
           <div class="settings-row">
@@ -1957,27 +1967,33 @@ async function loadTeamMembers(){
 }
 
 async function renderTeamCard(){
-  const card=document.getElementById('team-card');
-  if(!card)return;
+  const ownerCard=document.getElementById('team-card');
+  const memberCard=document.getElementById('team-info-card');
   const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
   const limit=PLAN_TEAM_LIMIT[plan]||0;
-  if(limit===0){card.style.display='none';return}
-  card.style.display='block';
 
-  const u=await window.AUTH.user();
-  const ownerId=u?.id;
-  // Only owner manages team (not members of someone else's team)
-  const{data:asMember}=await window.AUTH.client
-    .from('team_members')
-    .select('id')
-    .eq('member_user_id',ownerId)
-    .eq('status','active')
-    .limit(1);
-  if(asMember && asMember.length){
-    // This user is a member of someone else's team — hide invite UI
-    card.style.display='none';
+  // Member of someone else's team → show informational card, hide management
+  if(CURRENT_PROFILE && CURRENT_PROFILE.is_team_member){
+    if(ownerCard)ownerCard.style.display='none';
+    if(memberCard){
+      memberCard.style.display='block';
+      const ownerLabel=CURRENT_PROFILE.team_owner_name||CURRENT_PROFILE.team_owner_email||'—';
+      const ownerEl=document.getElementById('team-info-owner');
+      if(ownerEl)ownerEl.textContent=ownerLabel;
+    }
     return;
   }
+
+  // Free plan or any plan with no team feature → hide both cards
+  if(limit===0){
+    if(ownerCard)ownerCard.style.display='none';
+    if(memberCard)memberCard.style.display='none';
+    return;
+  }
+
+  // Owner of a paid plan with team support → show full management card
+  if(memberCard)memberCard.style.display='none';
+  ownerCard.style.display='block';
 
   const members=await loadTeamMembers();
   const pill=document.getElementById('team-count-pill');
