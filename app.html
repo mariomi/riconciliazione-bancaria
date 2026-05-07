@@ -588,6 +588,18 @@ td.avere{color:var(--green)}
 .settings-card.danger-card{border-color:rgba(168,32,26,.25)}
 .settings-card.danger-card .settings-card-head{background:var(--red-soft);color:var(--red)}
 .muted-mono{font-family:'SF Mono',Menlo,monospace;font-size:12px;color:var(--muted)}
+.set-name-input{margin-top:2px;padding:6px 10px;border:1px solid transparent;background:transparent;border-radius:6px;font-size:13px;font-family:inherit;color:var(--ink);outline:0;width:100%;max-width:280px;transition:border-color .15s,background .15s}
+.set-name-input:hover{border-color:var(--line)}
+.set-name-input:focus{border-color:var(--ink);background:var(--paper-2)}
+.set-name-input::placeholder{color:var(--muted-2)}
+
+.team-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper-2);border:1px solid var(--line);border-radius:7px;font-size:13px}
+.team-row .em{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--ink)}
+.team-row .st{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:3px 9px;border-radius:980px}
+.team-row .st.pending{background:var(--amber-soft);color:var(--amber)}
+.team-row .st.active{background:var(--green-soft);color:var(--green)}
+.team-row .rm{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 4px}
+.team-row .rm:hover{color:var(--red)}
 .theme-picker{display:inline-flex;background:var(--paper-2);border-radius:8px;padding:3px;gap:1px}
 .theme-btn{padding:7px 14px;font-size:12px;font-weight:500;border:0;background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
 .theme-btn:hover{color:var(--ink)}
@@ -1080,7 +1092,7 @@ td.avere{color:var(--green)}
             <div class="price-per">per sempre</div>
             <ul class="price-feats">
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>2 analisi al mese (2 crediti)</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutte le 5 banche supportate</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutte le banche supportate</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PDF annotati con match colorati</li>
               <li class="muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Storico analisi</li>
               <li class="muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Supporto prioritario</li>
@@ -1095,7 +1107,7 @@ td.avere{color:var(--green)}
             <div class="price-per">fatturazione mensile</div>
             <ul class="price-feats">
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>40 analisi al mese</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutte le 5 banche supportate</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutte le banche supportate</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PDF annotati con match colorati</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Storico analisi 4 mesi</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Multi-utente fino a 3</li>
@@ -1234,9 +1246,9 @@ td.avere{color:var(--green)}
             </div>
           </div>
           <div class="settings-row">
-            <div class="settings-row-text">
+            <div class="settings-row-text" style="flex:1">
               <strong>Nome</strong>
-              <span id="set-name" class="muted-mono">—</span>
+              <input type="text" id="set-name-input" class="set-name-input" placeholder="Il tuo nome" maxlength="80" onblur="saveProfileName(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
             </div>
           </div>
           <div class="settings-row">
@@ -1262,6 +1274,22 @@ td.avere{color:var(--green)}
                 Disponibile da Pro
               </div>
               <button class="btn btn-primary btn-sm" onclick="goSection('pricing')">Passa a Pro</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card" id="team-card" style="display:none">
+          <div class="settings-card-head">Team <span id="team-count-pill" style="font-size:10px;font-weight:600;background:var(--paper);color:var(--ink);padding:2px 8px;border-radius:980px;margin-left:6px;border:1px solid var(--line);text-transform:none;letter-spacing:0">0/0</span></div>
+          <div class="settings-row">
+            <div class="settings-row-text" style="flex:1;min-width:0">
+              <strong>Membri</strong>
+              <span>Invita altri utenti via email — quando creano un account su Mach.bank, vedranno il tuo storico delle analisi.</span>
+              <div id="team-list" style="margin-top:14px;display:flex;flex-direction:column;gap:8px"></div>
+              <div style="margin-top:14px;display:flex;gap:8px">
+                <input type="email" id="team-invite-email" placeholder="email@esempio.it" style="flex:1;padding:9px 12px;border:1px solid var(--line-2);background:var(--paper);border-radius:6px;font-size:13px;font-family:inherit;color:var(--ink);outline:0">
+                <button class="btn btn-primary btn-sm" onclick="inviteTeamMember()" id="team-invite-btn">Invita</button>
+              </div>
+              <div id="team-invite-msg" style="font-size:12px;margin-top:8px;min-height:1em"></div>
             </div>
           </div>
         </div>
@@ -1451,7 +1479,20 @@ async function onHistoryToggle(on){
   // If switching OFF, ask for confirmation and (on accept) wipe all stored
   // analyses for the user. We delete everything — including starred ones —
   // because the user has explicitly opted out of having any history saved.
-  if(on===false && isHistoryEnabled()){
+  // Check both localStorage AND the DB to handle the case where the toggle
+  // was enabled in a previous session and analyses were already saved.
+  let hasData=isHistoryEnabled();
+  if(!hasData){
+    try{
+      const u=await window.AUTH.user();
+      if(u){
+        const{count}=await window.AUTH.client.from('analyses')
+          .select('*',{count:'exact',head:true}).eq('user_id',u.id);
+        hasData=(count||0)>0;
+      }
+    }catch(e){console.warn('toggle pre-check',e)}
+  }
+  if(on===false && hasData){
     const ok=await confirmModal({
       title:'Disattivare lo storico?',
       body:'<strong>Attenzione:</strong> tutti i dati dello storico — incluse le analisi salvate con la stellina — verranno <strong>eliminati definitivamente</strong> dai nostri server. Questa azione non può essere annullata.<br><br>Le quote di utilizzo del mese corrente restano comunque tracciate per il rispetto del piano.',
@@ -1803,14 +1844,122 @@ if(window.matchMedia){
 function fillSettingsAccountInfo(){
   if(!CURRENT_PROFILE)return;
   const e=document.getElementById('set-email');
-  const n=document.getElementById('set-name');
+  const n=document.getElementById('set-name-input');
   const p=document.getElementById('set-plan');
   if(e)e.textContent=document.getElementById('user-email').textContent||'—';
   if(n){
     const full=[CURRENT_PROFILE.nome,CURRENT_PROFILE.cognome].filter(Boolean).join(' ').trim();
-    n.textContent=full||'—';
+    n.value=full;
   }
   if(p)p.textContent=PLAN_LABEL[(CURRENT_PROFILE.plan||'free')]||'—';
+}
+
+// ===== TEAM (multi-utente) =====
+const PLAN_TEAM_LIMIT={free:0,pro:3,pro_plus:5,business:999};
+
+async function loadTeamMembers(){
+  try{
+    const{data,error}=await window.AUTH.client
+      .from('team_members')
+      .select('id,member_email,member_user_id,status,created_at,joined_at')
+      .order('created_at',{ascending:true});
+    if(error)throw error;
+    return data||[];
+  }catch(e){console.error('loadTeamMembers',e);return []}
+}
+
+async function renderTeamCard(){
+  const card=document.getElementById('team-card');
+  if(!card)return;
+  const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  const limit=PLAN_TEAM_LIMIT[plan]||0;
+  if(limit===0){card.style.display='none';return}
+  card.style.display='block';
+
+  const u=await window.AUTH.user();
+  const ownerId=u?.id;
+  // Only owner manages team (not members of someone else's team)
+  const{data:asMember}=await window.AUTH.client
+    .from('team_members')
+    .select('id')
+    .eq('member_user_id',ownerId)
+    .eq('status','active')
+    .limit(1);
+  if(asMember && asMember.length){
+    // This user is a member of someone else's team — hide invite UI
+    card.style.display='none';
+    return;
+  }
+
+  const members=await loadTeamMembers();
+  const pill=document.getElementById('team-count-pill');
+  if(pill)pill.textContent=members.length+' / '+limit;
+
+  const list=document.getElementById('team-list');
+  if(list){
+    if(!members.length){
+      list.innerHTML='<div style="font-size:12.5px;color:var(--muted-2);padding:6px 0">Nessun membro invitato.</div>';
+    }else{
+      list.innerHTML=members.map(m=>`<div class="team-row">
+        <span class="em">${esc(m.member_email)}</span>
+        <span class="st ${m.status==='active'?'active':'pending'}">${m.status==='active'?'Attivo':'In attesa'}</span>
+        <button class="rm" onclick="removeTeamMember('${m.id}')" title="Rimuovi">&times;</button>
+      </div>`).join('');
+    }
+  }
+  const inp=document.getElementById('team-invite-email');
+  const btn=document.getElementById('team-invite-btn');
+  const full=members.length>=limit;
+  if(inp)inp.disabled=full;
+  if(btn){btn.disabled=full;btn.textContent=full?'Limite raggiunto':'Invita'}
+}
+
+async function inviteTeamMember(){
+  const inp=document.getElementById('team-invite-email');
+  const msg=document.getElementById('team-invite-msg');
+  const email=(inp.value||'').trim().toLowerCase();
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg.style.color='var(--red)';msg.textContent='Inserisci un\'email valida.';return}
+  try{
+    const u=await window.AUTH.user();
+    if(email===u.email.toLowerCase())throw new Error('Non puoi invitare te stesso.');
+    const{error}=await window.AUTH.client.from('team_members').insert({owner_id:u.id,member_email:email});
+    if(error){
+      if(error.code==='23505')throw new Error('Hai già invitato questa email.');
+      throw error;
+    }
+    inp.value='';
+    msg.style.color='var(--green)';
+    msg.textContent='Invito inviato. L\'utente diventerà attivo quando creerà l\'account con questa email.';
+    renderTeamCard();
+  }catch(e){msg.style.color='var(--red)';msg.textContent='Errore: '+e.message}
+}
+
+async function removeTeamMember(id){
+  if(!confirm('Rimuovere questo membro dal team?'))return;
+  try{
+    const{error}=await window.AUTH.client.from('team_members').delete().eq('id',id);
+    if(error)throw error;
+    renderTeamCard();
+  }catch(e){alert('Errore: '+e.message)}
+}
+
+async function saveProfileName(el){
+  const v=(el.value||'').trim();
+  if(!CURRENT_PROFILE)return;
+  const oldFull=[CURRENT_PROFILE.nome,CURRENT_PROFILE.cognome].filter(Boolean).join(' ').trim();
+  if(v===oldFull)return;
+  try{
+    const u=await window.AUTH.user();
+    if(!u)return;
+    // Split into nome/cognome on first space (DB has both columns)
+    const parts=v.split(/\s+/);
+    const nome=parts[0]||null;
+    const cognome=parts.length>1?parts.slice(1).join(' '):null;
+    const{error}=await window.AUTH.client.from('profiles')
+      .update({nome,cognome}).eq('id',u.id);
+    if(error)throw error;
+    CURRENT_PROFILE.nome=nome;CURRENT_PROFILE.cognome=cognome;
+  }catch(e){alert('Errore: '+e.message);el.value=oldFull;}
 }
 
 async function sendPasswordReset(){
@@ -1832,6 +1981,7 @@ async function sendPasswordReset(){
     await loadProfileAndUsage();
     highlightCurrentPlan();
     fillSettingsAccountInfo();
+    if(typeof renderTeamCard==='function')renderTeamCard();
     document.documentElement.classList.add('auth-ok');
   }catch(e){
     console.error('Auth error',e);
@@ -1886,6 +2036,7 @@ function goSection(name){
   window.scrollTo({top:0,behavior:'smooth'});
   // When entering Storico, render its current state
   if(name==='history'&&typeof renderHistoryView==='function')renderHistoryView();
+  if(name==='settings'&&typeof renderTeamCard==='function')renderTeamCard();
 }
 
 function toggleFAQ(item){item.classList.toggle('open')}
