@@ -1665,8 +1665,13 @@ async function recordAnalysis(){
   renderUsage();
   if(typeof updBtn==='function')updBtn();
 
-  // DB insert ONLY when history is enabled
-  if(!isHistoryEnabled())return;
+  // Save to DB:
+  // - Paid plans (incl. team members): SEMPRE, indipendentemente dal toggle.
+  //   Il toggle controlla solo se l'utente VEDE lo storico nella sezione
+  //   dedicata, ma i dati sono sempre disponibili sul server.
+  // - Free plan: never save (toggle è bloccato off).
+  const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  if(plan==='free')return;
   try{
     const u=await window.AUTH.user();
     if(!u)return;
@@ -3056,25 +3061,32 @@ function parseMPS(pages,fname){
 
 // ===== ONE-CLICK: EXTRACT + RECONCILE =====
 async function runAll(){
-  // Refresh quota right before checking — handles month rollover during long
-  // sessions (the count is filtered by created_at >= start-of-month, and the
-  // local key is keyed by YYYY-MM, so both reset on the 1st automatically).
+  // 1) Mostra subito il loader e disabilita il bottone — feedback immediato.
+  const bbLoader=$('bb-loader'),bbText=$('bb-text');
+  if(bbLoader)bbLoader.classList.add('on');
+  if(bbText)bbText.textContent='Avvio analisi...';
+  if($('btn-go'))$('btn-go').disabled=true;
+
+  // Helper per fermare il loader in caso di abort
+  const _abortLoader=()=>{
+    if(bbLoader)bbLoader.classList.remove('on');
+    if($('btn-go'))$('btn-go').disabled=false;
+  };
+
+  // 2) Validazione + check quota (con eventuale refresh dal server)
+  const aName=$('analysis-name').value.trim();
+  if(!aName){_abortLoader();alert('Inserisci un nome per l\'analisi.');return;}
   try{await loadProfileAndUsage();}catch(e){console.warn('quota refresh failed',e)}
   if(typeof quotaReached==='function'&&quotaReached()){
+    _abortLoader();
     const plan=PLAN_LABEL[(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free'];
     if(confirm('Hai raggiunto il limite del piano '+plan+' ('+CURRENT_COUNT+' analisi questo mese).\n\nPassa a un piano superiore per più analisi.\n\nVai alla pagina dei piani?')){
       goSection('pricing');
     }
     return;
   }
-  const aName=$('analysis-name').value.trim();
-  if(!aName){alert('Inserisci un nome per l\'analisi.');return;}
   S.analysisName=aName;
   const prog=$('prog'),pf=$('prog-f'),pt=$('prog-t');
-  const bbLoader=$('bb-loader'),bbText=$('bb-text');
-  if(bbLoader)bbLoader.classList.add('on');
-  if(bbText)bbText.textContent='Avvio analisi...';
-  $('btn-go').disabled=true;
   S.pm=[];S.em=[];S.ecFiles={};S.partFiles={};
 
   const total=S.pf.length+S.ef.length;
