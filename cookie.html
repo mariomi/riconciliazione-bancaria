@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cookie Policy · Mach.bank</title>
+<script>document.documentElement.classList.add('js-anim');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -53,7 +54,41 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .footer a{color:var(--ink);text-decoration:none;font-weight:500}.footer a:hover{text-decoration:underline}
 .footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-bottom:14px}
 .footer-links a{color:var(--muted);font-weight:500;text-decoration:none}.footer-links a:hover{color:var(--ink)}
-@media(max-width:768px){.page-head{padding:56px 24px 28px}.page-head h1{font-size:40px;letter-spacing:-1px}.legal{padding:0 24px 64px}.nav-links a:not(.btn){display:none}}
+/* Reveal animations (vedi reveal-on-scroll.js) */
+.js-anim .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1);will-change:opacity,transform}
+.js-anim .reveal.in-view{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.js-anim .reveal{opacity:1;transform:none;transition:none}}
+
+/* Tabella cookie a 4 colonne — su phone scrolla orizzontalmente nel wrap */
+.legal-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:14px 0;border:1px solid var(--line);border-radius:8px}
+.legal-table-wrap > table{margin:0;border:0}
+.legal-table-wrap code{font-size:.85em;background:var(--paper-2);padding:1px 5px;border-radius:4px;word-break:break-all}
+
+@media(max-width:768px){
+  .nav-inner{padding:14px 18px}
+  .page-head{padding:48px 20px 24px}
+  .page-head .meta{font-size:10.5px}
+  .page-head h1{font-size:32px;letter-spacing:-.8px;line-height:1.05}
+  .page-head p.lead{font-size:14px}
+  .legal{padding:0 20px 56px;font-size:14px;line-height:1.6}
+  .legal h2{font-size:22px;margin:36px 0 10px;padding-top:24px}
+  .legal h3{font-size:14px;margin:18px 0 6px}
+  .legal p,.legal li{font-size:14px}
+  .legal ul{margin:6px 0 12px 20px}
+  .legal a{word-break:break-word}
+  .legal table{font-size:12px;min-width:540px}
+  .legal table th,.legal table td{padding:8px 10px}
+  .callout{padding:12px 14px;font-size:13px}
+  .prefs-cta{flex-direction:column;align-items:stretch;gap:8px}
+  .prefs-cta .btn{justify-content:center}
+  .nav-links a:not(.btn){display:none}
+  .footer{padding:28px 20px;font-size:11.5px}
+  .footer-links{gap:14px}
+}
+@media(max-width:480px){
+  .page-head h1{font-size:28px}
+  .legal h2{font-size:20px}
+}
 
 @media(min-width:1900px){.nav-inner,.page-head,.section,.legal{max-width:1600px}}
 
@@ -89,14 +124,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   </div>
 </div>
 
-<div class="page-head">
+<div class="page-head reveal">
   <div class="meta">Documento legale</div>
   <h1>Cookie <em>policy</em>.</h1>
   <p class="lead">Quali cookie usiamo, perché, e come puoi gestirli. Conforme alla Direttiva ePrivacy 2002/58/CE e al provvedimento del Garante Privacy del 10 giugno 2021.</p>
   <p style="font-size:12.5px;color:var(--muted-2);margin-top:8px">Ultimo aggiornamento: 6 maggio 2026</p>
 </div>
 
-<article class="legal">
+<article class="legal reveal">
 
   <h2>1. Cosa sono i cookie</h2>
   <p>I cookie sono piccoli file di testo che i siti visitati salvano nel browser dell'utente. Permettono al sito di "ricordare" informazioni come la lingua preferita, lo stato di login o le scelte fatte dall'utente. Non sono virus e non possono accedere ad altri file sul tuo dispositivo.</p>
@@ -108,6 +143,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   <h2>2. Cookie utilizzati da Reconcilia</h2>
   <h3>Cookie tecnici (necessari)</h3>
   <p>Sono indispensabili per il funzionamento del sito e non richiedono il consenso dell'utente ai sensi del provvedimento del Garante Privacy.</p>
+  <div class="legal-table-wrap">
   <table>
     <tr><th>Nome</th><th>Finalità</th><th>Durata</th><th>Parte</th></tr>
     <tr>
@@ -135,6 +171,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
       <td>Prima parte</td>
     </tr>
   </table>
+  </div>
 
   <h3>Cookie analitici</h3>
   <p>Al momento <strong>non utilizziamo cookie analitici</strong>. Se in futuro li introdurremo, saranno solo aggregati e anonimi (es. Plausible Analytics, in self-hosting), e il loro uso sarà subordinato al tuo consenso esplicito.</p>
@@ -183,5 +220,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <script defer src="auth-aware-nav.js"></script>
 <script defer src="cookie-banner.js"></script>
+<script defer src="reveal-on-scroll.js"></script>
 </body>
 </html>
