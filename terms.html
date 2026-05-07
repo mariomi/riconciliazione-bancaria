@@ -82,9 +82,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 /* Mobile hamburger menu */
 .nav-burger{display:none;width:40px;height:40px;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:transparent;border:0;cursor:pointer;padding:0;z-index:65;position:relative}
 .nav-burger span{display:block;width:22px;height:2px;background:var(--ink);border-radius:2px;transition:transform .25s,opacity .25s}
+.nav-mobile-quick{display:none}
 @media(max-width:768px){
   /* HAMBURGER sempre sopra il drawer (z-index 1100) cosi' resta cliccabile */
   .nav-burger{display:inline-flex;position:relative;z-index:1100}
+  /* Quick-link Prezzi sempre visibile nella topbar mobile */
+  .nav-mobile-quick{display:inline-flex;align-items:center;color:var(--ink);font-size:14px;font-weight:500;text-decoration:none;padding:8px 14px;border-radius:7px;margin-left:auto;margin-right:6px;transition:background .15s}
+  .nav-mobile-quick:hover,.nav-mobile-quick:active{background:var(--paper-2)}
   /* DRAWER CHIUSO — display:none totale, niente leak */
   .nav-links{display:none !important}
   /* MOBILE — drawer aperto: fullscreen overlay con tutti gli item */
@@ -120,6 +124,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 <div class="nav-wrap">
   <div class="nav-inner">
     <a href="index.html" class="brand"><span class="brand-mark"></span><span class="brand-text"><strong>Mach</strong><span class="brand-tld">.bank</span></span></a>
+    <a href="pricing.html" class="nav-mobile-quick">Prezzi</a>
     <button class="nav-burger" aria-label="Menu" onclick="document.body.classList.toggle('nav-open')"><span></span><span></span><span></span></button>
       <nav class="nav-links">
       <a href="index.html#features" class="nav-link">Funzionalità</a>
