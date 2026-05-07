@@ -150,12 +150,16 @@ body{
 .plan-badge{
   font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;
   padding:3px 9px;border-radius:980px;
-  background:var(--paper-2);color:var(--ink);border:1px solid var(--line);
+  /* Free (default): nero su bianco */
+  background:#ffffff;color:var(--ink);border:1px solid var(--line);
 }
-.plan-badge.plan-pro{background:var(--ink);color:#fff;border-color:var(--ink)}
-.plan-badge.plan-pro_plus{background:var(--amber);color:#fff;border-color:var(--amber)}
-.plan-badge.plan-team{background:transparent;color:var(--ink);border:1px solid var(--line-2);font-weight:500}
-.plan-badge.plan-business{background:var(--green);color:#fff;border-color:var(--green)}
+/* Pro: nero su blu chiaro */
+.plan-badge.plan-pro{background:#dbeafe;color:var(--ink);border-color:#bfdbfe}
+/* Pro+: bianco su nero */
+.plan-badge.plan-pro_plus{background:var(--ink);color:#fff;border-color:var(--ink)}
+.plan-badge.plan-business{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* Team (es. Team Pro+): bianco su nero */
+.plan-badge.plan-team{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 
 .usage-card{
   background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
