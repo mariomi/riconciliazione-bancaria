@@ -1385,12 +1385,46 @@ async function loadProfileAndUsage(){
   // Profile
   const{data:prof}=await window.AUTH.client.from('profiles').select('plan,nome,cognome').eq('id',u.id).maybeSingle();
   CURRENT_PROFILE=prof||{plan:'free'};
+  CURRENT_PROFILE.own_plan=CURRENT_PROFILE.plan||'free';
+  CURRENT_PROFILE.is_team_member=false;
+  CURRENT_PROFILE.team_owner_email=null;
+
+  // If the user is an active team member of someone else, inherit the owner's plan
+  try{
+    const{data:membership}=await window.AUTH.client
+      .from('team_members')
+      .select('owner_id')
+      .eq('member_user_id',u.id)
+      .eq('status','active')
+      .limit(1)
+      .maybeSingle();
+    if(membership && membership.owner_id){
+      const{data:ownerProf}=await window.AUTH.client
+        .from('profiles')
+        .select('plan,email,nome,cognome')
+        .eq('id',membership.owner_id)
+        .maybeSingle();
+      if(ownerProf && ownerProf.plan){
+        CURRENT_PROFILE.plan=ownerProf.plan;
+        CURRENT_PROFILE.is_team_member=true;
+        CURRENT_PROFILE.team_owner_email=ownerProf.email||null;
+        CURRENT_PROFILE.team_owner_name=[ownerProf.nome,ownerProf.cognome].filter(Boolean).join(' ').trim()||ownerProf.email||'team';
+      }
+    }
+  }catch(e){console.warn('team membership lookup failed',e);}
+
   const plan=(CURRENT_PROFILE.plan||'free').toLowerCase();
   // Plan badge in topbar
   const badge=document.getElementById('plan-badge');
-  badge.textContent=PLAN_LABEL[plan]||plan;
+  const teamSuffix=CURRENT_PROFILE.is_team_member?' · Team':'';
+  badge.textContent=(PLAN_LABEL[plan]||plan)+teamSuffix;
   badge.className='plan-badge plan-'+plan;
   badge.style.display='inline-block';
+  if(CURRENT_PROFILE.is_team_member){
+    badge.title='Stai usando il team di '+(CURRENT_PROFILE.team_owner_name||CURRENT_PROFILE.team_owner_email||'qualcuno');
+  }else{
+    badge.removeAttribute('title');
+  }
   // Count of analyses for the current calendar month (matches quota period)
   const{count}=await window.AUTH.client
     .from('analyses')
@@ -1884,7 +1918,13 @@ function fillSettingsAccountInfo(){
     const full=[CURRENT_PROFILE.nome,CURRENT_PROFILE.cognome].filter(Boolean).join(' ').trim();
     n.value=full;
   }
-  if(p)p.textContent=PLAN_LABEL[(CURRENT_PROFILE.plan||'free')]||'—';
+  if(p){
+    let label=PLAN_LABEL[(CURRENT_PROFILE.plan||'free')]||'—';
+    if(CURRENT_PROFILE.is_team_member){
+      label+=' · membro team di '+(CURRENT_PROFILE.team_owner_name||CURRENT_PROFILE.team_owner_email||'—');
+    }
+    p.textContent=label;
+  }
 }
 
 // ===== TEAM (multi-utente) =====
