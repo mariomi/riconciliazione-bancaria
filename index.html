@@ -4,11 +4,55 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mach.bank — Riconciliazione Bancaria Automatica</title>
+<!-- Marker che permette al CSS di nascondere gli elementi .reveal solo se
+     JS e' attivo. Senza JS il contenuto rimane visibile (no FOUC, accessibile). -->
+<script>document.documentElement.classList.add('js-anim');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== SCROLL REVEAL ANIMATIONS =====
+   Elementi marcati .reveal partono opacity:0 + traslati di 24px verso il
+   basso. Quando entrano in viewport (vedi IntersectionObserver in fondo)
+   vengono rilasciati con un easing morbido. Le grid taggate
+   .reveal-stagger applicano lo stesso effetto ai figli con un piccolo
+   ritardo progressivo (cascade visivo). */
+.js-anim .reveal{
+  opacity:0;transform:translateY(24px);
+  transition:opacity .8s cubic-bezier(.2,.8,.2,1),
+             transform .8s cubic-bezier(.2,.8,.2,1);
+  will-change:opacity,transform;
+}
+.js-anim .reveal.in-view{opacity:1;transform:none}
+.js-anim .reveal-stagger > *{
+  opacity:0;transform:translateY(18px);
+  transition:opacity .65s cubic-bezier(.2,.8,.2,1),
+             transform .65s cubic-bezier(.2,.8,.2,1);
+}
+.js-anim .reveal-stagger.in-view > *{opacity:1;transform:none}
+.js-anim .reveal-stagger.in-view > *:nth-child(1){transition-delay:.06s}
+.js-anim .reveal-stagger.in-view > *:nth-child(2){transition-delay:.14s}
+.js-anim .reveal-stagger.in-view > *:nth-child(3){transition-delay:.22s}
+.js-anim .reveal-stagger.in-view > *:nth-child(4){transition-delay:.30s}
+.js-anim .reveal-stagger.in-view > *:nth-child(5){transition-delay:.38s}
+.js-anim .reveal-stagger.in-view > *:nth-child(6){transition-delay:.46s}
+/* Hero: applica lo stesso pattern, ma con un mini delay scaglionato sui
+   figli direttamente cosi e' immediato all'apertura della pagina */
+.js-anim .hero.reveal-stagger > *:nth-child(1){transition-delay:.05s}
+.js-anim .hero.reveal-stagger > *:nth-child(2){transition-delay:.18s}
+.js-anim .hero.reveal-stagger > *:nth-child(3){transition-delay:.32s}
+.js-anim .hero.reveal-stagger > *:nth-child(4){transition-delay:.45s}
+
+/* prefers-reduced-motion: utenti che hanno chiesto al sistema di evitare
+   animazioni vedono tutto in posizione finale immediatamente. */
+@media (prefers-reduced-motion:reduce){
+  .js-anim .reveal,
+  .js-anim .reveal-stagger > *{
+    opacity:1;transform:none;transition:none;
+  }
+}
 :root{
   --ink:#0a0a0a;--ink-2:#1a1a1a;
   --paper:#fafaf7;--paper-2:#f1f0eb;
@@ -291,7 +335,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </div>
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero reveal-stagger">
   <span class="eyebrow">Riconciliazione bancaria automatica</span>
   <h1>Riconcilia partitari ed<br>estratti conto in <em>un click</em>.</h1>
   <p>Reconcilia confronta automaticamente i movimenti del partitario con quelli dell'estratto conto. Carica i PDF, ottieni i match, scarica i report annotati con i match già evidenziati. Tutto in locale, niente upload sui nostri server.</p>
@@ -304,11 +348,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- FEATURES -->
 <section class="section" id="features">
-  <div class="section-head">
+  <div class="section-head reveal">
     <h2>Tutto quello che ti serve per <em>chiudere</em> il mese.</h2>
     <p>Parser nativi per cinque banche italiane, matching intelligente per data e importo, export in PDF annotati. Senza fogli Excel.</p>
   </div>
-  <div class="features">
+  <div class="features reveal-stagger">
     <div class="feat">
       <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
       <h3>Parser nativi PDF</h3>
@@ -344,11 +388,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- HOW IT WORKS -->
 <section class="section" id="how">
-  <div class="section-head center">
+  <div class="section-head center reveal">
     <h2>Come <em>funziona</em>.</h2>
     <p>Tre passaggi. Dal PDF al report con i match evidenziati, in meno di un minuto.</p>
   </div>
-  <div class="steps-grid">
+  <div class="steps-grid reveal-stagger">
     <div class="step">
       <div class="step-num">1</div>
       <h3>Carica i PDF</h3>
@@ -369,7 +413,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- SHOWCASE: UPLOAD -->
 <section class="section">
-  <div class="showcase">
+  <div class="showcase reveal-stagger">
     <div class="showcase-text">
       <h3>Carica i file. <em>Tutto qui</em>.</h3>
       <p>Trascina i tuoi PDF nelle aree dedicate. Reconcilia rileva automaticamente la banca emittente per ogni estratto conto e prepara l'analisi.</p>
@@ -402,7 +446,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- SHOWCASE: RESULTS -->
 <section class="section" style="border-top:0;padding-top:0">
-  <div class="showcase flip">
+  <div class="showcase flip reveal-stagger">
     <div class="showcase-mock">
       <div class="mock">
         <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">reconcilia.app/app · Risultati</div></div>
@@ -452,7 +496,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- SHOWCASE: ANNOTATED PDF -->
 <section class="section" style="border-top:0;padding-top:0">
-  <div class="showcase">
+  <div class="showcase reveal-stagger">
     <div class="showcase-text">
       <h3>Scarica i report con i <em>match segnati</em>.</h3>
       <p>Il vero superpotere: con un click scarichi uno ZIP con i tuoi PDF originali (sia partitari che estratti conto), ognuno con un evidenziatore colorato su ogni riga di movimento.</p>
@@ -496,11 +540,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- BIG STATS -->
 <section class="section" style="border-top:0;padding-top:0">
-  <div class="section-head center">
+  <div class="section-head center reveal">
     <h2>Numeri che <em>parlano</em>.</h2>
     <p>Tempo risparmiato e affidabilità verificate sul campo da commercialisti e controller italiani.</p>
   </div>
-  <div class="big-stats">
+  <div class="big-stats reveal-stagger">
     <div class="big-stat">
       <div class="big-stat-num">99,6<em>%</em></div>
       <div class="big-stat-lbl">match automatici corretti, verificate su migliaia di transazioni.</div>
@@ -519,11 +563,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- BANKS -->
 <section class="section" id="banks" style="border-top:0;padding-top:0">
-  <div class="section-head center">
+  <div class="section-head center reveal">
     <h2>Cinque banche, <em>più in arrivo</em>.</h2>
     <p>Parser nativi per i formati PDF di alcuni dei principali istituti italiani. Aggiungerne una nuova richiede solo un campione di estratto conto.</p>
   </div>
-  <div class="banks-grid">
+  <div class="banks-grid reveal-stagger">
     <div class="bank-card" style="--bank-color:#10613A">
       <div class="bank-logo">ISP</div>
       <div class="bank-card-name">Intesa Sanpaolo</div>
@@ -557,7 +601,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <!-- FINAL CTA -->
 <section class="section" style="border-top:0;padding-top:0">
-  <div class="final-cta">
+  <div class="final-cta reveal">
     <h2>Pronto per la <em>prossima analisi</em>?</h2>
     <p>Crea un account gratuito in 30 secondi. Nessuna carta richiesta.</p>
     <a href="login.html?mode=signup" class="btn btn-lg">Inizia gratis</a>
@@ -580,5 +624,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <script defer src="auth-aware-nav.js"></script>
 <script defer src="cookie-banner.js"></script>
+<script defer src="reveal-on-scroll.js"></script>
 </body>
 </html>

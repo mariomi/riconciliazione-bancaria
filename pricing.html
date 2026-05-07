@@ -4,11 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prezzi · Mach.bank</title>
+<script>document.documentElement.classList.add('js-anim');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+/* Reveal animations (vedi reveal-on-scroll.js) */
+.js-anim .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1);will-change:opacity,transform}
+.js-anim .reveal.in-view{opacity:1;transform:none}
+.js-anim .reveal-stagger > *{opacity:0;transform:translateY(18px);transition:opacity .65s cubic-bezier(.2,.8,.2,1),transform .65s cubic-bezier(.2,.8,.2,1)}
+.js-anim .reveal-stagger.in-view > *{opacity:1;transform:none}
+.js-anim .reveal-stagger.in-view > *:nth-child(1){transition-delay:.06s}
+.js-anim .reveal-stagger.in-view > *:nth-child(2){transition-delay:.14s}
+.js-anim .reveal-stagger.in-view > *:nth-child(3){transition-delay:.22s}
+.js-anim .reveal-stagger.in-view > *:nth-child(4){transition-delay:.30s}
+.js-anim .reveal-stagger.in-view > *:nth-child(5){transition-delay:.38s}
+@media (prefers-reduced-motion:reduce){.js-anim .reveal,.js-anim .reveal-stagger > *{opacity:1;transform:none;transition:none}}
+
 :root{
   --ink:#0a0a0a;--ink-2:#1a1a1a;
   --paper:#fafaf7;--paper-2:#f1f0eb;
@@ -137,13 +150,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   </div>
 </div>
 
-<div class="page-head">
+<div class="page-head reveal">
   <h1>Prezzi <em>semplici</em>.</h1>
   <p>Inizia gratis. Passa a Pro o Pro+ quando ti servono più analisi al mese. Niente vincoli, niente sorprese in fattura.</p>
 </div>
 
 <section class="section">
-  <div class="pricing">
+  <div class="pricing reveal-stagger">
     <div class="price-card">
       <div class="price-tier">Free</div>
       <div class="price-amount">€0</div>
@@ -204,7 +217,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   </div>
 
   <!-- COMPARE TABLE -->
-  <div class="compare">
+  <div class="compare reveal">
     <h2>Confronto <em>piani</em>.</h2>
     <p class="lead">Tutto chiaro. Nessuna stellina, nessuna riga in piccolo.</p>
 
@@ -288,5 +301,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <script defer src="auth-aware-nav.js"></script>
 <script defer src="cookie-banner.js"></script>
+<script defer src="reveal-on-scroll.js"></script>
 </body>
 </html>

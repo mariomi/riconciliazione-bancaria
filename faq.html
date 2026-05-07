@@ -4,11 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FAQ · Mach.bank</title>
+<script>document.documentElement.classList.add('js-anim');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+/* Reveal animations (vedi reveal-on-scroll.js) */
+.js-anim .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1);will-change:opacity,transform}
+.js-anim .reveal.in-view{opacity:1;transform:none}
+.js-anim .reveal-stagger > *{opacity:0;transform:translateY(18px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+.js-anim .reveal-stagger.in-view > *{opacity:1;transform:none}
+.js-anim .reveal-stagger.in-view > *:nth-child(1){transition-delay:.04s}
+.js-anim .reveal-stagger.in-view > *:nth-child(2){transition-delay:.10s}
+.js-anim .reveal-stagger.in-view > *:nth-child(3){transition-delay:.16s}
+.js-anim .reveal-stagger.in-view > *:nth-child(4){transition-delay:.22s}
+.js-anim .reveal-stagger.in-view > *:nth-child(5){transition-delay:.28s}
+.js-anim .reveal-stagger.in-view > *:nth-child(6){transition-delay:.34s}
+.js-anim .reveal-stagger.in-view > *:nth-child(7){transition-delay:.40s}
+.js-anim .reveal-stagger.in-view > *:nth-child(8){transition-delay:.46s}
+@media (prefers-reduced-motion:reduce){.js-anim .reveal,.js-anim .reveal-stagger > *{opacity:1;transform:none;transition:none}}
+
 :root{
   --ink:#0a0a0a;--ink-2:#1a1a1a;
   --paper:#fafaf7;--paper-2:#f1f0eb;
@@ -114,14 +130,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   </div>
 </div>
 
-<div class="page-head">
+<div class="page-head reveal">
   <h1>Domande <em>frequenti</em>.</h1>
   <p>Tutto quello che vuoi sapere su Reconcilia, dalle banche supportate alla privacy dei dati.</p>
 </div>
 
 <section class="section">
 
-  <div class="faq-cat">
+  <div class="faq-cat reveal">
     <h2>Generale</h2>
     <div class="faq-item" onclick="this.classList.toggle('open')">
       <div class="faq-q">Cos'è Reconcilia?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -137,7 +153,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     </div>
   </div>
 
-  <div class="faq-cat">
+  <div class="faq-cat reveal">
     <h2>Banche e formati</h2>
     <div class="faq-item" onclick="this.classList.toggle('open')">
       <div class="faq-q">Quali banche sono supportate?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -157,7 +173,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     </div>
   </div>
 
-  <div class="faq-cat">
+  <div class="faq-cat reveal">
     <h2>Matching e risultati</h2>
     <div class="faq-item" onclick="this.classList.toggle('open')">
       <div class="faq-q">Come funziona il matching?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -173,7 +189,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     </div>
   </div>
 
-  <div class="faq-cat">
+  <div class="faq-cat reveal">
     <h2>Privacy e sicurezza</h2>
     <div class="faq-item" onclick="this.classList.toggle('open')">
       <div class="faq-q">I miei PDF vengono caricati su un server?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -189,7 +205,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     </div>
   </div>
 
-  <div class="faq-cat">
+  <div class="faq-cat reveal">
     <h2>Account e fatturazione</h2>
     <div class="faq-item" onclick="this.classList.toggle('open')">
       <div class="faq-q">Posso disdire in qualsiasi momento?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -205,7 +221,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     </div>
   </div>
 
-  <div class="contact">
+  <div class="contact reveal">
     <h2>Non hai trovato la risposta?</h2>
     <p>Scrivici, rispondiamo in giornata.</p>
     <a href="mailto:contact@netawebstest.com?subject=Reconcilia" class="btn btn-primary">Contattaci</a>
@@ -228,5 +244,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <script defer src="auth-aware-nav.js"></script>
 <script defer src="cookie-banner.js"></script>
+<script defer src="reveal-on-scroll.js"></script>
 </body>
 </html>
