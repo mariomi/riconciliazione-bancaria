@@ -270,7 +270,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   /* Aggiunge un piccolo accent visivo prima del titolo: una linea verticale
      nera sottile, cosi' la sezione non e' un muro di testo */
   .showcase-text h3{padding-left:14px;border-left:2px solid var(--ink)}
-  .nav-links a:not(.btn){display:none}
+  /* (rimossa la rule .nav-links a:not(.btn){display:none}: ora il parent
+     .nav-links e' display:none chiuso, quindi i figli non leakano) */
   .final-cta h2{font-size:28px}
   .final-cta{padding:48px 22px}
   .footer{padding:36px 20px}
@@ -302,12 +303,28 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .nav-burger span{display:block;width:22px;height:2px;background:var(--ink);border-radius:2px;transition:transform .25s,opacity .25s}
 @media(max-width:768px){
   .nav-burger{display:inline-flex}
-  .nav-links{position:fixed;inset:0;background:var(--paper);flex-direction:column;justify-content:center;align-items:center;gap:18px;padding:32px;font-size:18px;transform:translateY(-100%);transition:transform .3s ease;z-index:60;display:flex !important}
-  /* Forza visibilita' di TUTTI gli item del menu (link + bottoni) quando il
-     drawer mobile e' aperto. Override aggressivo per bypassare auth-aware-nav.js
-     (che potrebbe aver fatto display:none su qualche bottone) e qualunque altro
-     hidden state. Cosi sul telefono vedi sempre: Funzionalita / Prezzi / FAQ
-     / Accedi / Inizia gratis (oppure Apri app + Esci se loggato). */
+  /* MOBILE — drawer chiuso: nav-links nascosta del tutto.
+     Niente trucchi con transform che possono lasciar leakare i bottoni
+     nella navbar (visto sul reale Safari iOS). display:none forza il
+     contenuto fuori dal flow: nessun bottone puo' apparire prima che
+     il drawer venga aperto. */
+  .nav-links{display:none !important}
+
+  /* MOBILE — drawer aperto: fullscreen overlay con i 5 item al centro */
+  body.nav-open .nav-links{
+    display:flex !important;
+    position:fixed; inset:0;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    padding:32px;
+    background:var(--paper);
+    z-index:1000;
+    animation:drawer-slide .25s cubic-bezier(.2,.8,.2,1);
+  }
+  /* Tutti gli item sempre visibili nel drawer aperto, override su
+     auth-aware-nav.js che potrebbe aver impostato display:none inline */
   body.nav-open .nav-links a,
   body.nav-open .nav-links a.btn,
   body.nav-open .nav-links a.btn-outline,
@@ -315,14 +332,19 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     display:inline-flex !important;
     visibility:visible !important;
     opacity:1 !important;
+    font-size:18px;
+    padding:12px 24px;
   }
-  .nav-links a{display:inline-flex !important;font-size:18px;padding:12px 24px}
-  .nav-links a.btn{font-size:16px;padding:14px 28px}
-  body.nav-open .nav-links{transform:translateY(0)}
+  body.nav-open .nav-links a.btn{font-size:16px;padding:14px 28px;min-width:200px;justify-content:center}
+
+  body.nav-open{overflow:hidden}
   body.nav-open .nav-burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
   body.nav-open .nav-burger span:nth-child(2){opacity:0}
   body.nav-open .nav-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-  body.nav-open{overflow:hidden}
+}
+@keyframes drawer-slide{
+  from{transform:translateY(-12px);opacity:0}
+  to{transform:translateY(0);opacity:1}
 }
 .hero-mobile-cta{display:none}
 @media(max-width:768px){
