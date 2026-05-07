@@ -1755,12 +1755,13 @@ function setHistoryEnabled(v){
   localStorage.setItem(HIST_KEY,v?'1':'0');
   localStorage.setItem(HIST_TOUCHED_KEY,'1');
 }
-// Auto-enable storico the first time a paid plan is detected (only if the
-// user has never explicitly chosen). Free users stay locked off.
-function maybeAutoEnableHistory(plan){
-  if(plan==='free')return;
-  if(localStorage.getItem(HIST_TOUCHED_KEY)==='1')return;
-  localStorage.setItem(HIST_KEY,'1');
+// Storico DISATTIVATO di default — niente auto-enable per nessun piano.
+// L'utente deve esplicitamente attivarlo da Impostazioni → Privacy e dati.
+// Questa scelta e' coerente con la promessa privacy-first: niente dati
+// sui server a meno che l'utente non lo richieda esplicitamente.
+function maybeAutoEnableHistory(/*plan*/){
+  // no-op: storico OFF di default. Richiede opt-in esplicito tramite il
+  // toggle in Impostazioni (vedi onHistoryToggle).
 }
 
 // Local monthly counter (used when history is disabled — keeps quota client-side)
@@ -1915,19 +1916,21 @@ async function refreshHistoryPurgeCount(){
 }
 
 async function recordAnalysis(){
-  // Always bump quota counter — both server (when ON) and local (always)
+  // Always bump quota counter — both server (when storico ON) and local (always)
   CURRENT_COUNT++;
   _bumpLocalCount();
   renderUsage();
   if(typeof updBtn==='function')updBtn();
 
-  // Save to DB:
-  // - Paid plans (incl. team members): SEMPRE, indipendentemente dal toggle.
-  //   Il toggle controlla solo se l'utente VEDE lo storico nella sezione
-  //   dedicata, ma i dati sono sempre disponibili sul server.
-  // - Free plan: never save (toggle è bloccato off).
+  // Save to DB SOLO se l'utente ha esplicitamente attivato lo storico.
+  // Default: OFF. L'utente attiva il toggle in Impostazioni → Privacy
+  // e dati per scegliere di conservare le analisi sul server.
+  // - Free plan: storico bloccato off (gate del piano)
+  // - Pro/Pro+/Business: storico opzionale, OFF di default, ON solo dopo
+  //   opt-in esplicito tramite toggle UI
   const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
   if(plan==='free')return;
+  if(!isHistoryEnabled())return; // l'utente NON ha attivato lo storico → no save
   try{
     const u=await window.AUTH.user();
     if(!u)return;
