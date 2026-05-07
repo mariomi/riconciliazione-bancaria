@@ -203,11 +203,29 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   .section{padding:56px 20px}
   .section-head h2{font-size:28px}
   .section-head p{font-size:14px}
-  .features,.steps-grid,.big-stats{grid-template-columns:1fr;gap:18px}
-  .showcase,.showcase.flip{grid-template-columns:1fr;gap:24px}
-  .showcase.flip .showcase-mock{order:0}
-  .showcase h3{font-size:24px}
-  .mock-stats{grid-template-columns:repeat(2,1fr)}
+  /* Le grid features/steps usano un trucco gap:1px+sfondo per disegnare
+     i divisori. Su mobile (1 colonna) quel gap diventa una banda orizzontale
+     brutta — riportiamo a card separate con background trasparente sul wrap */
+  .features,.steps-grid,.big-stats{
+    grid-template-columns:1fr;gap:14px;
+    background:transparent;border:0;border-radius:0;
+  }
+  .feature-card,.step-card,.big-stat{
+    border:1px solid var(--line);border-radius:var(--r);
+  }
+  /* Showcase mockups: HTML fake-screenshots con 5-col grid e tabelle —
+     non sopravvivono mobile. Li nascondo, lascio solo il testo+checklist
+     che e' il vero messaggio. Stack vertical, padding compatto. */
+  .showcase,.showcase.flip{grid-template-columns:1fr;gap:0;margin-bottom:56px}
+  .showcase-mock{display:none}
+  .showcase-text{max-width:100%}
+  .showcase-text h3{font-size:26px;line-height:1.1;margin-bottom:12px}
+  .showcase-text p{font-size:14.5px;line-height:1.65;margin-bottom:12px}
+  .showcase-text ul{margin-top:14px}
+  .showcase-text ul li{font-size:14px;padding:6px 0}
+  /* Aggiunge un piccolo accent visivo prima del titolo: una linea verticale
+     nera sottile, cosi' la sezione non e' un muro di testo */
+  .showcase-text h3{padding-left:14px;border-left:2px solid var(--ink)}
   .nav-links a:not(.btn){display:none}
   .final-cta h2{font-size:28px}
   .final-cta{padding:48px 22px}
@@ -216,6 +234,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   .feature-card{padding:22px}
   .step-card{padding:22px}
   .stat-num{font-size:36px}
+  .big-stats .big-stat{padding:24px 20px;text-align:left}
+  .big-stat-num{font-size:48px}
+  .big-stat-lbl{font-size:13.5px}
 }
 @media (max-width:480px){
   .hero h1{font-size:34px}
@@ -223,7 +244,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   .section{padding:48px 18px}
   .section-head h2{font-size:24px}
   .footer-cols{grid-template-columns:1fr}
-  .mock-stats{grid-template-columns:1fr}
+  .showcase-text h3{font-size:22px}
+  .big-stat-num{font-size:42px}
 }
 
 /* Ultra-wide screens: use more horizontal space */
