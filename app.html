@@ -214,6 +214,17 @@ body{
 .history-card .h-star.on svg{fill:currentColor}
 .history-empty{padding:48px 32px;text-align:center;color:var(--muted);font-size:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
 
+/* Plan-gate overlay (Free users): blurs the whole Storico section */
+#sec-history{position:relative;min-height:520px}
+.hist-plangate{display:none;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;padding:32px;background:rgba(250,250,247,.55);backdrop-filter:saturate(140%) blur(2px);-webkit-backdrop-filter:saturate(140%) blur(2px)}
+#sec-history.gated .hist-plangate{display:flex}
+#sec-history.gated .hist-inner{filter:blur(6px) saturate(.7);pointer-events:none;user-select:none;opacity:.85}
+.hist-plangate-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:36px 32px;max-width:440px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.12)}
+.hist-plangate-icon{width:56px;height:56px;border-radius:50%;background:var(--paper-2);color:var(--ink);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.hist-plangate-card h3{font-family:'Instrument Serif',serif;font-size:30px;font-weight:400;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px}
+.hist-plangate-card h3 em{font-style:italic;color:var(--muted)}
+.hist-plangate-card p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:22px}
+
 .history-detail{display:none}
 .history-detail.on{display:block}
 .history-detail .back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);background:transparent;border:0;cursor:pointer;font-family:inherit;padding:0;margin-bottom:14px}
@@ -965,6 +976,19 @@ td.avere{color:var(--green)}
       <!-- ==================== BANKS ==================== -->
       <!-- ==================== STORICO ==================== -->
       <section class="section" id="sec-history">
+        <!-- Plan-gate overlay: shown for Free users, blurs the whole storico -->
+        <div class="hist-plangate" id="hist-plangate">
+          <div class="hist-plangate-card">
+            <div class="hist-plangate-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h3>Storico disponibile da <em>Pro</em></h3>
+            <p>Il piano Free non include lo storico delle analisi. Passa al piano Pro per conservare le tue riconciliazioni e poterle rivedere in qualsiasi momento.</p>
+            <button class="btn btn-primary" onclick="goSection('pricing')">Passa a Pro</button>
+          </div>
+        </div>
+
+        <div class="hist-inner">
         <div class="page-head">
           <h1>Storico <em>analisi</em>.</h1>
           <p>Le tue ultime riconciliazioni con le tabelle di match. Lo storico viene mantenuto in base al tuo piano (<span id="hist-retention">—</span>): clicca la stellina per salvare un'analisi a tempo indeterminato.</p>
@@ -1001,6 +1025,7 @@ td.avere{color:var(--green)}
           </div>
           <div id="hd-tables"></div>
         </div>
+        </div><!-- /.hist-inner -->
       </section>
 
       <section class="section" id="sec-banks">
@@ -1597,16 +1622,18 @@ async function loadHistory(){
 }
 
 async function renderHistoryView(){
+  const sec=document.getElementById('sec-history');
   const dis=document.getElementById('history-disabled');
   const content=document.getElementById('history-content');
   const detail=document.getElementById('history-detail');
   if(detail)detail.classList.remove('on');
   // Plan-aware retention copy
   const ret=document.getElementById('hist-retention');
-  if(ret){
-    const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
-    ret.textContent=PLAN_HISTORY_RETENTION[plan]||'1 mese';
-  }
+  const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  if(ret)ret.textContent=PLAN_HISTORY_RETENTION[plan]||'1 mese';
+  // Free users see the whole storico blurred behind a "Passa a Pro" overlay
+  if(sec)sec.classList.toggle('gated', plan==='free');
+  if(plan==='free')return; // Skip data load — content is hidden anyway
   if(!isHistoryEnabled()){
     if(dis)dis.style.display='block';
     if(content)content.classList.add('history-faded');
