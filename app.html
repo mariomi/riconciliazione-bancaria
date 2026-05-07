@@ -191,26 +191,28 @@ body{
 .history-disabled .btn{margin-top:6px}
 .history-faded{opacity:.35;pointer-events:none;filter:saturate(.4);user-select:none}
 
-.history-list{display:flex;flex-direction:column;gap:10px}
+.history-list{display:flex;flex-direction:column;gap:12px}
 .history-card{
   background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
-  padding:18px 22px;display:flex;align-items:center;gap:16px;cursor:pointer;
+  padding:24px 28px;display:flex;align-items:center;gap:18px;cursor:pointer;
   transition:border-color .15s,box-shadow .15s,transform .15s;
 }
-.history-card:hover{border-color:var(--line-2);box-shadow:0 4px 14px rgba(0,0,0,.04)}
+.history-card:hover{border-color:var(--line-2);box-shadow:0 6px 20px rgba(0,0,0,.05);transform:translateY(-1px)}
 .history-card.starred{border-color:var(--amber);background:var(--amber-soft)}
 .history-card .h-main{flex:1;min-width:0}
-.history-card .h-name{font-size:14.5px;font-weight:600;letter-spacing:-.2px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.history-card .h-meta{font-size:12px;color:var(--muted)}
-.history-card .h-stats{display:flex;gap:14px;flex-shrink:0;font-size:12px}
-.history-card .h-stat{text-align:right}
-.history-card .h-stat .n{font-family:'Instrument Serif',serif;font-size:20px;line-height:1;letter-spacing:-.3px}
-.history-card .h-stat .n.g{color:var(--green)}
-.history-card .h-stat .n.a{color:var(--amber)}
-.history-card .h-stat .n.r{color:var(--red)}
-.history-card .h-stat .l{font-size:10px;color:var(--muted-2);margin-top:2px;letter-spacing:.2px}
+.history-card .h-name{
+  font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;letter-spacing:-.4px;
+  margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.15;
+}
+.history-card .h-meta{font-size:13px;color:var(--muted);letter-spacing:.1px}
+.history-card .h-meta .h-meta-sep{display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--muted-2);margin:0 8px;vertical-align:middle;opacity:.6}
+.history-card .h-arrow{
+  flex-shrink:0;color:var(--muted-2);transition:color .15s,transform .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.history-card:hover .h-arrow{color:var(--ink);transform:translateX(2px)}
 .history-card .h-star{
-  width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid var(--line);
+  width:40px;height:40px;border-radius:10px;background:transparent;border:1px solid var(--line);
   display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
   color:var(--muted-2);transition:all .15s
 }
@@ -238,15 +240,9 @@ body{
 .history-detail-head h2{font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;letter-spacing:-.5px;margin:0;outline:0;border-radius:6px;padding:2px 8px;margin-left:-8px;transition:background .15s}
 .history-detail-head h2:hover{background:var(--paper-2)}
 .history-detail-head h2:focus{background:var(--paper-2);box-shadow:inset 0 0 0 1px var(--line-2)}
-.history-detail-meta{font-size:12px;color:var(--muted)}
-.history-tbl-wrap{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
-.history-tbl-head{padding:12px 18px;background:var(--paper-2);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
-.history-tbl-head .dot{width:8px;height:8px;border-radius:50%}
-.history-tbl-head .ct{color:var(--muted-2);font-weight:500}
-.history-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
-.history-tbl th,.history-tbl td{padding:9px 18px;border-top:1px solid var(--line);text-align:left}
-.history-tbl th{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--paper);border-top:0}
-.history-tbl td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.history-detail-meta{font-size:13px;color:var(--muted);margin-top:4px}
+/* history detail uses the same .stats-grid + .panel + .table-wrap/.table-scroll
+   styles as the live results page — see "STATS GRID" and "TABLES" above. */
 
 /* ===== CONFIRM MODAL ===== */
 .cm-back{position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;animation:cm-fade .15s ease-out}
@@ -1808,19 +1804,18 @@ async function renderHistoryView(){
   if(empty)empty.style.display='none';
   list.innerHTML=HISTORY_CACHE.map(a=>{
     const cls='history-card'+(a.is_starred?' starred':'');
+    const totMov=(a.num_movimenti_partitario||0)+(a.num_movimenti_estratto||0);
     return `<div class="${cls}" onclick="openHistoryDetail('${a.id}')">
       <div class="h-main">
         <div class="h-name">${esc(a.name||'Senza nome')}</div>
-        <div class="h-meta">${fmtDate(a.created_at)} · ${a.num_movimenti_partitario||0} mov. partitario · ${a.num_movimenti_estratto||0} mov. E/C</div>
-      </div>
-      <div class="h-stats">
-        <div class="h-stat"><div class="n g">${a.num_match_esatti||0}</div><div class="l">Esatti</div></div>
-        <div class="h-stat"><div class="n a">${a.num_match_approx||0}</div><div class="l">Approx.</div></div>
-        <div class="h-stat"><div class="n r">${a.num_non_trovati||0}</div><div class="l">N.T.</div></div>
+        <div class="h-meta">${fmtDate(a.created_at)}<span class="h-meta-sep"></span>${totMov.toLocaleString('it-IT')} movimenti totali</div>
       </div>
       <button class="h-star${a.is_starred?' on':''}" onclick="event.stopPropagation();toggleStar('${a.id}')" title="${a.is_starred?'Rimuovi dai preferiti':'Salva permanentemente'}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="${a.is_starred?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="${a.is_starred?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </button>
+      <div class="h-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1844,46 +1839,71 @@ function openHistoryDetail(id){
   document.getElementById('history-list-view').style.display='none';
   document.getElementById('history-detail').classList.add('on');
   document.getElementById('hd-title').textContent=a.name||'Senza nome';
-  document.getElementById('hd-meta').textContent=fmtDate(a.created_at)+' · '+
-    (a.num_match_esatti||0)+' esatti · '+(a.num_match_approx||0)+' approx · '+(a.num_non_trovati||0)+' non trovati';
+  document.getElementById('hd-meta').textContent=fmtDate(a.created_at);
   const btn=document.getElementById('hd-star-btn');
   if(btn){btn.classList.toggle('on',!!a.is_starred);btn.querySelector('svg').setAttribute('fill',a.is_starred?'currentColor':'none')}
 
   const md=a.matches_data||{exact:[],fuzzy:[],unmatched_ec:[],unmatched_pt:[]};
   const tbls=document.getElementById('hd-tables');
-  function tblPair(title,color,rows){
-    if(!rows||!rows.length)return '';
-    return `<div class="history-tbl-wrap">
-      <div class="history-tbl-head"><span class="dot" style="background:${color}"></span>${title}<span class="ct">(${rows.length})</span></div>
-      <table class="history-tbl"><thead><tr>
-        <th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo</th>
-        <th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo</th>
-      </tr></thead><tbody>${rows.map(p=>`<tr>
-        <td>${esc(p.ec.date||'')}</td><td>${esc((p.ec.desc||'').slice(0,80))}</td>
-        <td class="num">${fmtMoney(Math.abs((p.ec.dare||0)-(p.ec.avere||0)))}</td>
-        <td>${esc(p.pt.date||'')}</td><td>${esc((p.pt.desc||'').slice(0,80))}</td>
-        <td class="num">${fmtMoney(Math.abs((p.pt.dare||0)-(p.pt.avere||0)))}</td>
-      </tr>`).join('')}</tbody></table>
+
+  // Stats grid identical to the live results page (Mov.Part / Mov.E/C / Esatti / Approx / Non trovati)
+  const statsHTML=`
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value">${a.num_movimenti_partitario||0}</div><div class="stat-label">Mov. Partitario</div></div>
+      <div class="stat-card"><div class="stat-value">${a.num_movimenti_estratto||0}</div><div class="stat-label">Mov. Estratto Conto</div></div>
+      <div class="stat-card"><div class="stat-value green">${a.num_match_esatti||0}</div><div class="stat-label">Match Esatti</div></div>
+      <div class="stat-card"><div class="stat-value orange">${a.num_match_approx||0}</div><div class="stat-label">Approssimativi</div></div>
+      <div class="stat-card"><div class="stat-value red">${a.num_non_trovati||0}</div><div class="stat-label">Non Trovati</div></div>
     </div>`;
+
+  // Pair table (Match Esatti, Match Approssimativi) — identical structure to results page
+  function pairPanel(title,dotVar,id,rows){
+    return `
+      <div class="sub-section-head"><div class="section-dot" style="background:var(${dotVar})"></div><h3>${title}</h3><span class="section-count">(${rows?rows.length:0})</span></div>
+      <div class="panel"><div class="table-wrap"><div class="table-scroll">
+        <table><thead><tr>
+          <th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo E/C</th>
+          <th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo Part.</th>
+        </tr></thead><tbody>${(rows||[]).map(p=>{
+          const ecAmt=Math.abs((p.ec.dare||0)-(p.ec.avere||0));
+          const ptAmt=Math.abs((p.pt.dare||0)-(p.pt.avere||0));
+          return `<tr>
+            <td>${esc(p.ec.date||'')}</td>
+            <td><div class="desc-cell">${esc(p.ec.desc||'')}</div></td>
+            <td class="am">${fmtMoney(ecAmt)}</td>
+            <td>${esc(p.pt.date||'')}</td>
+            <td><div class="desc-cell">${esc(p.pt.desc||'')}</div></td>
+            <td class="am">${fmtMoney(ptAmt)}</td>
+          </tr>`;
+        }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">Nessun risultato</td></tr>'}</tbody></table>
+      </div></div></div>`;
   }
-  function tblSingle(title,color,rows){
-    if(!rows||!rows.length)return '';
-    return `<div class="history-tbl-wrap">
-      <div class="history-tbl-head"><span class="dot" style="background:${color}"></span>${title}<span class="ct">(${rows.length})</span></div>
-      <table class="history-tbl"><thead><tr>
-        <th>Data</th><th>Descrizione</th><th style="text-align:right">Dare</th><th style="text-align:right">Avere</th>
-      </tr></thead><tbody>${rows.map(m=>`<tr>
-        <td>${esc(m.date||'')}</td><td>${esc((m.desc||'').slice(0,100))}</td>
-        <td class="num">${m.dare?fmtMoney(m.dare):'—'}</td>
-        <td class="num">${m.avere?fmtMoney(m.avere):'—'}</td>
-      </tr>`).join('')}</tbody></table>
-    </div>`;
+
+  // Single-side table (unmatched movements) — same structure as results page
+  function singlePanel(title,dotVar,rows,withSource){
+    return `
+      <div class="sub-section-head"><div class="section-dot" style="background:var(${dotVar})"></div><h3>${title}</h3><span class="section-count">(${rows?rows.length:0})</span></div>
+      <div class="panel"><div class="table-wrap"><div class="table-scroll">
+        <table><thead><tr>
+          ${withSource?'<th>Banca</th>':'<th>Fonte</th>'}
+          <th>Data</th><th>Descrizione</th>
+          <th style="text-align:right">Dare</th><th style="text-align:right">Avere</th>
+        </tr></thead><tbody>${(rows||[]).map(m=>`<tr>
+          <td><span class="tag">${esc(m.source||'—')}</span></td>
+          <td>${esc(m.date||'')}</td>
+          <td><div class="desc-cell">${esc(m.desc||'')}</div></td>
+          <td class="am dare">${m.dare?fmtMoney(m.dare):'—'}</td>
+          <td class="am avere">${m.avere?fmtMoney(m.avere):'—'}</td>
+        </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Nessun risultato</td></tr>'}</tbody></table>
+      </div></div></div>`;
   }
+
   tbls.innerHTML=
-    tblPair('Match Esatti','#0f7a3a',md.exact)+
-    tblPair('Match Approssimativi','#a35d00',md.fuzzy)+
-    tblSingle('Non trovati nel Partitario','#a8201a',md.unmatched_ec)+
-    tblSingle('Non trovati nell\'Estratto Conto','#7a7770',md.unmatched_pt);
+    statsHTML+
+    pairPanel('Match Esatti','--green','ex',md.exact)+
+    pairPanel('Match Approssimativi','--amber','fz',md.fuzzy)+
+    singlePanel('Presenti nell\'Estratto Conto, non nel Partitario','--red',md.unmatched_ec,true)+
+    singlePanel('Presenti nel Partitario, non nell\'Estratto Conto','--muted-2',md.unmatched_pt,false);
 }
 function closeHistoryDetail(){
   document.getElementById('history-detail').classList.remove('on');
