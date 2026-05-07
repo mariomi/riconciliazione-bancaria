@@ -220,6 +220,38 @@ body{
 .history-card .h-star.on{color:var(--amber);background:var(--amber-soft);border-color:var(--amber)}
 .history-card .h-star.on svg{fill:currentColor}
 .history-empty{padding:48px 32px;text-align:center;color:var(--muted);font-size:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
+/* ===== STORICO FILTER BAR ===== */
+.history-filter-bar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 16px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:16px;
+}
+.history-filter-bar .hf-search{
+  position:relative;flex:1;min-width:220px;display:flex;align-items:center;
+}
+.history-filter-bar .hf-search-icon{position:absolute;left:12px;color:var(--muted-2);pointer-events:none}
+.history-filter-bar .hf-search input{
+  width:100%;padding:9px 12px 9px 36px;border:1px solid var(--line-2);background:#fff;
+  border-radius:7px;font-family:inherit;font-size:13.5px;color:var(--ink);outline:0;
+  transition:border-color .15s,box-shadow .15s;
+}
+.history-filter-bar .hf-search input:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+.history-filter-bar .hf-dates{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.history-filter-bar .hf-date{
+  display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);
+  background:#fff;border:1px solid var(--line-2);border-radius:7px;padding:0 12px 0 10px;
+  transition:border-color .15s;
+}
+.history-filter-bar .hf-date:focus-within{border-color:var(--ink)}
+.history-filter-bar .hf-date span{font-weight:500;letter-spacing:.2px;text-transform:uppercase;font-size:10.5px;color:var(--muted-2)}
+.history-filter-bar .hf-date input{
+  border:0;background:transparent;font-family:inherit;font-size:13px;color:var(--ink);
+  padding:8px 0;outline:0;font-variant-numeric:tabular-nums;
+}
+.hf-result-count{
+  font-size:12.5px;color:var(--muted);margin-bottom:12px;padding:0 4px;
+}
+.hf-result-count strong{color:var(--ink);font-weight:600}
 /* ===== STORICO PAGER ===== */
 .history-pager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:24px;flex-wrap:wrap}
 .history-pager .pg-btn{
@@ -817,6 +849,13 @@ td.avere{color:var(--green)}
   .settings-row{flex-direction:column;align-items:stretch;gap:12px}
   .settings-row .toggle{align-self:flex-end}
   .settings-row .btn{align-self:flex-start}
+  /* Storico filter bar stacks on phone */
+  .history-filter-bar{padding:12px;gap:8px}
+  .history-filter-bar .hf-search{min-width:100%}
+  .history-filter-bar .hf-search input{font-size:14px}
+  .history-filter-bar .hf-dates{width:100%;flex-wrap:wrap}
+  .history-filter-bar .hf-date{flex:1;min-width:140px}
+  .history-filter-bar .hf-clear{width:100%}
   /* Storico card: smaller serif title, tighter padding, hide the chevron */
   .history-card{padding:18px 18px;gap:12px}
   .history-card .h-name{font-size:20px;margin-bottom:4px}
@@ -1164,6 +1203,25 @@ td.avere{color:var(--green)}
               <span style="flex:1">Lo storico è disattivato: le prossime analisi <strong>non verranno salvate</strong>. Stai vedendo le analisi salvate prima della disattivazione.</span>
               <button class="btn btn-outline btn-sm" onclick="goSection('settings')">Attiva</button>
             </div>
+            <!-- Filter bar: search by name + date range -->
+            <div class="history-filter-bar" id="history-filter-bar">
+              <div class="hf-search">
+                <svg class="hf-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="hf-name" placeholder="Cerca per nome…" oninput="onHistoryFilterChange()" autocomplete="off">
+              </div>
+              <div class="hf-dates">
+                <label class="hf-date">
+                  <span>Dal</span>
+                  <input type="date" id="hf-from" onchange="onHistoryFilterChange()">
+                </label>
+                <label class="hf-date">
+                  <span>Al</span>
+                  <input type="date" id="hf-to" onchange="onHistoryFilterChange()">
+                </label>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm hf-clear" id="hf-clear" onclick="clearHistoryFilters()" style="display:none">Azzera</button>
+            </div>
+            <div id="hf-result-count" class="hf-result-count" style="display:none"></div>
             <div id="history-list" class="history-list"></div>
             <div id="history-pager" class="history-pager" style="display:none"></div>
             <div id="history-empty" class="history-empty" style="display:none">
@@ -1880,9 +1938,11 @@ async function recordAnalysis(){
 }
 
 // ===== STORICO =====
-let HISTORY_CACHE=null;
-let HISTORY_CURRENT=null; // currently-open analysis in detail view
+let HISTORY_CACHE=null;        // raw rows from DB, sorted by starred+created_at desc
+let HISTORY_FILTERED=null;     // post-filter view (search+date), what the pager paginates
+let HISTORY_CURRENT=null;      // currently-open analysis in detail view
 let HISTORY_PAGE=1;
+const HISTORY_FILTERS={name:'',from:'',to:''};
 
 function fmtDate(iso){
   if(!iso)return '—';
@@ -1951,10 +2011,16 @@ async function renderHistoryView(){
   const list=document.getElementById('history-list');
   const empty=document.getElementById('history-empty');
   if(!list)return;
+  // Hide the filter bar entirely when there's literally nothing saved (avoids
+  // a confusing "Azzera" CTA on an empty page).
+  const fbar=document.getElementById('history-filter-bar');
+  if(fbar)fbar.style.display=HISTORY_CACHE.length?'flex':'none';
   if(!HISTORY_CACHE.length){
     list.innerHTML='';
     const pager=document.getElementById('history-pager');
     if(pager)pager.style.display='none';
+    const rc=document.getElementById('hf-result-count');
+    if(rc)rc.style.display='none';
     if(empty){
       empty.style.display='block';
       if(HISTORY_LAST_ERR){
@@ -1965,14 +2031,40 @@ async function renderHistoryView(){
     }
     return;
   }
+  // Apply name+date filters → HISTORY_FILTERED
+  applyHistoryFilters();
+  // Show the result count + clear button only when at least one filter is active
+  const filtersActive=!!(HISTORY_FILTERS.name||HISTORY_FILTERS.from||HISTORY_FILTERS.to);
+  const clearBtn=document.getElementById('hf-clear');
+  if(clearBtn)clearBtn.style.display=filtersActive?'inline-flex':'none';
+  const rc=document.getElementById('hf-result-count');
+  if(rc){
+    if(filtersActive){
+      rc.style.display='block';
+      rc.innerHTML='<strong>'+HISTORY_FILTERED.length+'</strong> '+(HISTORY_FILTERED.length===1?'analisi trovata':'analisi trovate')+' su '+HISTORY_CACHE.length+' totali';
+    }else{
+      rc.style.display='none';
+    }
+  }
+  // Empty state when filters yield zero rows (but raw cache has data)
+  if(!HISTORY_FILTERED.length){
+    list.innerHTML='';
+    const pager=document.getElementById('history-pager');
+    if(pager)pager.style.display='none';
+    if(empty){
+      empty.style.display='block';
+      empty.textContent='Nessuna analisi corrisponde ai filtri selezionati. Prova ad allargare il periodo o cambiare il termine di ricerca.';
+    }
+    return;
+  }
   if(empty)empty.style.display='none';
-  // Pagination: 25 per page
+  // Pagination over the FILTERED list (25 per page)
   const PER_PAGE=25;
-  const totalPages=Math.max(1,Math.ceil(HISTORY_CACHE.length/PER_PAGE));
+  const totalPages=Math.max(1,Math.ceil(HISTORY_FILTERED.length/PER_PAGE));
   if(HISTORY_PAGE>totalPages)HISTORY_PAGE=totalPages;
   if(HISTORY_PAGE<1)HISTORY_PAGE=1;
   const startIdx=(HISTORY_PAGE-1)*PER_PAGE;
-  const pageRows=HISTORY_CACHE.slice(startIdx,startIdx+PER_PAGE);
+  const pageRows=HISTORY_FILTERED.slice(startIdx,startIdx+PER_PAGE);
   list.innerHTML=pageRows.map(a=>{
     const cls='history-card'+(a.is_starred?' starred':'');
     const totMov=(a.num_movimenti_partitario||0)+(a.num_movimenti_estratto||0);
@@ -2010,7 +2102,8 @@ function renderHistoryPager(totalPages){
     prev=p;
   }
   html+='<button class="pg-btn" onclick="gotoHistoryPage('+(HISTORY_PAGE+1)+')"'+(HISTORY_PAGE>=totalPages?' disabled':'')+' aria-label="Successiva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>';
-  html+='<span class="pg-info">Pagina '+HISTORY_PAGE+' di '+totalPages+' · '+HISTORY_CACHE.length+' analisi</span>';
+  const visibleCount=(HISTORY_FILTERED&&HISTORY_FILTERED.length)||HISTORY_CACHE.length;
+  html+='<span class="pg-info">Pagina '+HISTORY_PAGE+' di '+totalPages+' · '+visibleCount+' analisi</span>';
   pager.innerHTML=html;
 }
 
@@ -2020,6 +2113,42 @@ function gotoHistoryPage(p){
   // Scroll to top of list smoothly
   const sec=document.getElementById('sec-history');
   if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ===== STORICO FILTERS (search by name + period) =====
+function applyHistoryFilters(){
+  const{name,from,to}=HISTORY_FILTERS;
+  const q=(name||'').trim().toLowerCase();
+  const fromTs=from?new Date(from+'T00:00:00').getTime():null;
+  // 'to' is inclusive: cover the whole day by reaching the next midnight
+  const toTs=to?new Date(to+'T23:59:59.999').getTime():null;
+  HISTORY_FILTERED=(HISTORY_CACHE||[]).filter(a=>{
+    if(q && !((a.name||'').toLowerCase().includes(q)))return false;
+    if(fromTs||toTs){
+      const ts=new Date(a.created_at).getTime();
+      if(fromTs && ts<fromTs)return false;
+      if(toTs && ts>toTs)return false;
+    }
+    return true;
+  });
+}
+
+function onHistoryFilterChange(){
+  HISTORY_FILTERS.name=(document.getElementById('hf-name')?.value||'');
+  HISTORY_FILTERS.from=(document.getElementById('hf-from')?.value||'');
+  HISTORY_FILTERS.to=(document.getElementById('hf-to')?.value||'');
+  // Any filter change resets pagination to page 1
+  HISTORY_PAGE=1;
+  renderHistoryView();
+}
+
+function clearHistoryFilters(){
+  HISTORY_FILTERS.name='';HISTORY_FILTERS.from='';HISTORY_FILTERS.to='';
+  const n=document.getElementById('hf-name');if(n)n.value='';
+  const f=document.getElementById('hf-from');if(f)f.value='';
+  const t=document.getElementById('hf-to');if(t)t.value='';
+  HISTORY_PAGE=1;
+  renderHistoryView();
 }
 
 async function toggleStar(id){
