@@ -124,7 +124,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   <div class="meta">Documento legale</div>
   <h1>Privacy <em>policy</em>.</h1>
   <p class="lead">Come trattiamo i tuoi dati personali. Ai sensi del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003 (Codice Privacy) come modificato dal D.Lgs. 101/2018.</p>
-  <p style="font-size:12.5px;color:var(--muted-2);margin-top:8px">Ultimo aggiornamento: 6 maggio 2026</p>
+  <p style="font-size:12.5px;color:var(--muted-2);margin-top:8px">Ultimo aggiornamento: 7 maggio 2026 — aggiunte sezioni 3-bis (storico), 7 (sicurezza estesa), 7-bis (data breach), 7-ter (limitazioni), 7-quater (sub-fornitori)</p>
 </div>
 
 <article class="legal reveal">
@@ -142,13 +142,45 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   </ul>
   <h3>Dati generati dall'utilizzo del servizio</h3>
   <ul>
-    <li><strong>Metadati delle analisi</strong>: nome dell'analisi, numero di file caricati, numero di movimenti, conteggio dei match — non il contenuto dei tuoi PDF</li>
+    <li><strong>Metadati delle analisi</strong>: nome dell'analisi, numero di file caricati, numero di movimenti totali, conteggio aggregato dei match (esatti, approssimativi, non trovati). Sono dati strutturali, non contengono il contenuto dei tuoi PDF</li>
+    <li><strong>Storico analisi (opzionale)</strong>: se hai un piano a pagamento e abiliti la funzione "Salva risultati nello storico" in <em>Impostazioni → Privacy e dati</em>, conserviamo anche le tabelle di match (date, descrizioni e importi delle singole righe) per consentirti di rivedere l'analisi in seguito. Vedi sezione 3-bis per dettagli e ritenzione</li>
     <li><strong>Data e ora di accesso</strong> al servizio (gestiti da Supabase Auth)</li>
+    <li><strong>Conteggio analisi mensili</strong>: per applicare i limiti del piano</li>
+    <li><strong>Tema interfaccia, densità, lingua</strong>: salvati in localStorage del tuo browser, non sui nostri server</li>
   </ul>
   <h3>Dati che NON raccogliamo</h3>
   <div class="callout">
-    <strong>I tuoi PDF (partitari ed estratti conto) non vengono mai caricati sui nostri server.</strong> Tutto il parsing e l'analisi avvengono esclusivamente nel tuo browser. Non riceviamo, non leggiamo e non memorizziamo alcun dato bancario o contabile contenuto nei tuoi documenti.
+    <strong>I tuoi PDF originali (partitari ed estratti conto) non vengono mai caricati sui nostri server.</strong> Tutto il parsing e l'analisi avvengono esclusivamente nel tuo browser. Non riceviamo, non leggiamo e non memorizziamo i file PDF in sé. Anche quando attivi lo storico, salviamo solo le righe tabellari risultanti dal matching, non gli allegati originali.
   </div>
+
+  <h2>3-bis. Funzione "Storico analisi" e ritenzione dati</h2>
+  <p>Lo Storico è una funzione opzionale dei piani a pagamento (Pro, Pro+, Business). Quando attiva, dopo ogni riconciliazione salviamo nel database Supabase:</p>
+  <ul>
+    <li>Nome dell'analisi (impostato da te)</li>
+    <li>Data e ora di esecuzione</li>
+    <li>Numero di file e movimenti processati</li>
+    <li>Tabelle di match esatti, approssimativi, non trovati con: data, descrizione (max 200 caratteri), importi Dare/Avere</li>
+    <li>Stato "preferita" (stellina) e flag di archivio</li>
+  </ul>
+  <p><strong>Non salviamo</strong> i PDF originali, eventuali allegati, righe complete con metadati interni, identificativi cliente o codici interni del partitario non presenti nelle descrizioni.</p>
+  <p>Ritenzione automatica in base al piano:</p>
+  <div class="legal-table-wrap">
+  <table>
+    <tr><th>Piano</th><th>Ritenzione default</th><th>Analisi "preferite" (stellina)</th></tr>
+    <tr><td>Free</td><td>Non disponibile</td><td>—</td></tr>
+    <tr><td>Pro</td><td>4 mesi dalla creazione</td><td>Conservate finché l'account è attivo</td></tr>
+    <tr><td>Pro+</td><td>12 mesi dalla creazione</td><td>Conservate finché l'account è attivo</td></tr>
+    <tr><td>Business</td><td>24 mesi dalla creazione</td><td>Conservate finché l'account è attivo o secondo SLA contrattuale</td></tr>
+  </table>
+  </div>
+  <p>Le analisi più vecchie del periodo di ritenzione vengono eliminate automaticamente da una procedura di pulizia (RPC <code>cleanup_old_analyses</code>) che gira ad ogni accesso allo Storico. Le analisi marcate come "preferite" sono escluse dalla cancellazione automatica.</p>
+  <p><strong>Controllo dell'utente:</strong> in qualsiasi momento puoi:</p>
+  <ul>
+    <li>Disattivare il salvataggio nelle Impostazioni (gli storici precedenti restano consultabili, ma le analisi successive non saranno salvate)</li>
+    <li>Cancellare singole analisi cliccando l'apposito comando nel dettaglio</li>
+    <li>Cancellare <strong>tutto</strong> lo storico con il bottone "Elimina tutto" in Impostazioni → Privacy e dati (azione immediata e irreversibile)</li>
+    <li>Esportare i tuoi dati in formato JSON via richiesta a <a href="mailto:contact@netawebstest.com">contact@netawebstest.com</a> (diritto alla portabilità — art. 20 GDPR)</li>
+  </ul>
 
   <h2>3. Finalità e basi giuridiche del trattamento</h2>
   <div class="legal-table-wrap">
@@ -169,7 +201,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   <ul>
     <li><strong>Dati di account attivo</strong>: per tutta la durata del rapporto contrattuale</li>
     <li><strong>Dati di account chiuso</strong>: cancellati entro 30 giorni dalla richiesta di cancellazione, salvo obblighi di legge (es. dati di fatturazione: 10 anni ex art. 2220 c.c.)</li>
-    <li><strong>Log di accesso</strong>: 90 giorni</li>
+    <li><strong>Storico analisi</strong>: ritenzione plan-based come da sezione 3-bis. Le analisi "preferite" sono conservate finché l'account è attivo</li>
+    <li><strong>Conteggio quote mensili</strong>: 13 mesi (per consentire confronti anno-su-anno)</li>
+    <li><strong>Log di accesso e audit Supabase Auth</strong>: 90 giorni</li>
+    <li><strong>Backup automatici Supabase</strong>: 7 giorni rolling per piani Pro/Pro+, 30 giorni per Business (gestiti dall'infrastruttura, non da noi)</li>
+    <li><strong>Email di sistema inviate</strong> (conferma, reset password, magic link): registro mittente conservato 6 mesi per auditing anti-abuso</li>
   </ul>
 
   <h2>6. I tuoi diritti</h2>
@@ -187,12 +223,72 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   <p>Per esercitare i tuoi diritti scrivi a <a href="mailto:contact@netawebstest.com">contact@netawebstest.com</a>. Risponderemo entro 30 giorni.</p>
 
   <h2>7. Sicurezza dei dati</h2>
+  <p>Adottiamo misure tecniche e organizzative adeguate ai sensi degli articoli 24, 25 e 32 GDPR per proteggere i tuoi dati. In sintesi:</p>
+  <h3>Misure tecniche</h3>
   <ul>
-    <li>Le password sono memorizzate solo come hash bcrypt (algoritmo a senso unico, non reversibile)</li>
-    <li>Tutte le comunicazioni avvengono in HTTPS/TLS 1.3</li>
-    <li>Accesso al database protetto da Row-Level Security: ogni utente vede solo i propri dati</li>
-    <li>L'infrastruttura Supabase è certificata SOC 2 Type II e ISO 27001</li>
+    <li><strong>Cifratura in transito</strong>: tutte le comunicazioni avvengono via HTTPS con TLS 1.3, certificati gestiti da Vercel/Let's Encrypt con rinnovo automatico</li>
+    <li><strong>Cifratura at rest</strong>: il database PostgreSQL Supabase è cifrato sui dischi (AES-256) tramite AWS EBS encryption nel data center eu-west-1 (Irlanda)</li>
+    <li><strong>Hashing password</strong>: le password non sono mai salvate in chiaro. Vengono hashate con bcrypt (cost factor 10+) e il valore originale non è recuperabile nemmeno da noi</li>
+    <li><strong>Row-Level Security (RLS)</strong>: ogni query al database passa per policy che verificano l'<code>auth.uid()</code> della sessione. Un utente non può tecnicamente leggere o modificare i dati di un altro utente, neanche con SQL injection sul nostro endpoint pubblico</li>
+    <li><strong>Token di sessione</strong>: validi 1 ora con refresh token rotante. Logout invalida immediatamente il token sul server</li>
+    <li><strong>Rate limiting</strong> su login, registrazione e reset password per prevenire attacchi brute force e enumeration</li>
+    <li><strong>Header di sicurezza</strong>: HSTS, X-Content-Type-Options, X-Frame-Options applicati via Vercel</li>
+    <li><strong>Backup giornalieri automatici</strong> con point-in-time recovery (PITR) gestiti da Supabase</li>
   </ul>
+  <h3>Misure organizzative</h3>
+  <ul>
+    <li>Accesso al pannello amministrativo Supabase limitato al titolare e protetto con autenticazione 2FA obbligatoria</li>
+    <li>Service-role key (chiave admin con bypass RLS) <strong>non esposta lato client</strong>; vive solo in variabili d'ambiente di infrastruttura</li>
+    <li>Anon key pubblicabile lato client perché privata di privilegi: tutte le operazioni passano per RLS</li>
+    <li>Code review prima di ogni deploy in produzione</li>
+    <li>Principio del minimo privilegio sulle chiavi API</li>
+  </ul>
+  <h3>Certificazioni infrastrutturali</h3>
+  <ul>
+    <li><strong>Supabase / AWS eu-west-1</strong>: certificati ISO 27001, ISO 27017, ISO 27018, SOC 1/2/3, conformi GDPR e con Standard Contractual Clauses</li>
+    <li><strong>Vercel</strong> (hosting frontend): SOC 2 Type II, conforme GDPR</li>
+  </ul>
+  <div class="callout">
+    <strong>Nessun sistema è invulnerabile al 100%.</strong> Anche con queste misure non possiamo garantire in modo assoluto contro attacchi di tipo zero-day, errori umani o vulnerabilità di terze parti. Per questo abbiamo definito procedure di risposta agli incidenti (sezione 7-bis) e raccomandiamo a tutti gli utenti di proteggere le proprie credenziali.
+  </div>
+
+  <h2>7-bis. Procedure di risposta a violazioni dei dati (Data Breach)</h2>
+  <p>In caso di violazione di dati personali (accesso non autorizzato, perdita, distruzione, alterazione, divulgazione), agiamo conformemente agli articoli 33 e 34 GDPR:</p>
+  <ol>
+    <li><strong>Identificazione e contenimento</strong>: appena rilevata l'anomalia, isoliamo il sistema interessato, raccogliamo log e cerchiamo di limitare la propagazione (massimo entro 12 ore dall'identificazione)</li>
+    <li><strong>Valutazione del rischio</strong>: classifichiamo l'incidente per gravità (basso / medio / alto) considerando natura, volume e categorie dei dati coinvolti</li>
+    <li><strong>Notifica al Garante Privacy</strong>: se la violazione comporta un rischio per i diritti e le libertà degli interessati, notifichiamo all'<a href="https://www.gpdp.it" target="_blank" rel="noopener">Autorità Garante</a> entro 72 ore dalla scoperta (art. 33 GDPR)</li>
+    <li><strong>Notifica agli utenti</strong>: se la violazione comporta un rischio <em>elevato</em>, comunichiamo agli utenti interessati senza ingiustificato ritardo via email, indicando: cosa è successo, quali dati sono coinvolti, conseguenze probabili, misure adottate da noi e che l'utente può adottare (es. cambiare password) (art. 34 GDPR)</li>
+    <li><strong>Registro interno</strong>: ogni violazione (anche quelle non notificabili) viene documentata in un registro interno con causa, impatto e azioni correttive</li>
+    <li><strong>Post-mortem</strong>: pubblicheremo un riepilogo trasparente dell'incidente e delle misure prese</li>
+  </ol>
+  <div class="callout">
+    <strong>Cosa puoi fare se sospetti una compromissione del tuo account:</strong> cambia subito la password (Impostazioni → Sicurezza), controlla lo storico analisi per attività sospette, ed inviaci una segnalazione a <a href="mailto:contact@netawebstest.com">contact@netawebstest.com</a>. Tratteremo la tua segnalazione con priorità.
+  </div>
+
+  <h2>7-ter. Limitazioni di responsabilità per incidenti di sicurezza</h2>
+  <p>Pur impegnandoci con la massima diligenza tecnica e organizzativa, non possiamo essere ritenuti responsabili per:</p>
+  <ul>
+    <li>Compromissione delle credenziali avvenuta lato utente (password debole, password riutilizzata, dispositivo compromesso, phishing)</li>
+    <li>Attacchi sofisticati a infrastrutture di nostri sub-fornitori (Supabase, Vercel, ForwardEmail, gestori DNS) che esulino dal controllo diretto di Netawebs</li>
+    <li>Bug zero-day non noti alla data dell'incidente in librerie di terze parti utilizzate</li>
+    <li>Eventi di forza maggiore tra cui — a titolo esemplificativo — guerra cibernetica, attacchi state-sponsored, sequestri giudiziari di infrastrutture, blackout regionali, calamità naturali</li>
+    <li>Perdita di dati derivante dall'uso non autorizzato delle credenziali da parte di terzi a cui l'utente abbia volontariamente o per negligenza dato accesso</li>
+  </ul>
+  <p>In ogni caso, l'eventuale responsabilità è limitata ai sensi dell'articolo 7 dei <a href="terms.html">Termini e Condizioni</a>.</p>
+
+  <h2>7-quater. Sub-fornitori (Sub-processors)</h2>
+  <p>Per fornire il servizio ci avvaliamo dei seguenti sub-fornitori, ciascuno con cui abbiamo stipulato un Data Processing Agreement (DPA) standard:</p>
+  <div class="legal-table-wrap">
+  <table>
+    <tr><th>Fornitore</th><th>Funzione</th><th>Localizzazione dati</th></tr>
+    <tr><td>Supabase, Inc.</td><td>Database, Auth, Storage</td><td>UE (Irlanda — AWS eu-west-1)</td></tr>
+    <tr><td>Vercel, Inc.</td><td>Hosting frontend</td><td>UE (region locked Frankfurt)</td></tr>
+    <tr><td>ForwardEmail.net</td><td>SMTP per invio email transazionali</td><td>UE</td></tr>
+    <tr><td>Cloudflare, Inc.</td><td>CDN per font Google (caching read-only)</td><td>Globale (no PII)</td></tr>
+  </table>
+  </div>
+  <p>L'elenco aggiornato dei sub-fornitori e dei DPA è disponibile su richiesta a <a href="mailto:contact@netawebstest.com">contact@netawebstest.com</a>. Ti notificheremo via email almeno 30 giorni prima di aggiungere o sostituire un sub-fornitore con accesso a dati personali identificativi, dandoti modo di obiettare e — eventualmente — risolvere il contratto senza penali.</p>
 
   <h2>8. Cookie</h2>
   <p>Per i dettagli sui cookie utilizzati consulta la nostra <a href="cookie.html">Cookie Policy</a>. In sintesi: usiamo solo cookie tecnici necessari (sessione di autenticazione, preferenze come tema chiaro/scuro). Non usiamo cookie di profilazione né di terze parti.</p>
