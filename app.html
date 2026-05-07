@@ -612,6 +612,37 @@ td.avere{color:var(--green)}
 .team-row .st.active{background:var(--green-soft);color:var(--green)}
 .team-row .rm{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 4px}
 .team-row .rm:hover{color:var(--red)}
+
+/* ===== Team info card (member view, more distinctive) ===== */
+.team-info-special{
+  position:relative;background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--r);padding:24px 26px;margin-bottom:14px;overflow:hidden;
+}
+.team-info-special .team-info-decor{
+  position:absolute;top:0;right:0;width:140px;height:140px;
+  background:radial-gradient(circle at top right,rgba(163,93,0,.10),transparent 60%);
+  pointer-events:none
+}
+.team-info-eyebrow{
+  display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;color:var(--amber);margin-bottom:14px;
+  background:var(--amber-soft);padding:5px 11px;border-radius:980px;
+}
+.team-info-body{display:flex;align-items:center;gap:18px}
+.team-info-avatar{
+  width:56px;height:56px;border-radius:50%;background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Instrument Serif',serif;font-size:26px;letter-spacing:-.5px;
+  flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.10)
+}
+.team-info-content{flex:1;min-width:0}
+.team-info-name{
+  font-family:'Instrument Serif',serif;font-size:28px;font-weight:400;
+  letter-spacing:-.5px;line-height:1.1;margin:0 0 6px;color:var(--ink)
+}
+.team-info-desc{
+  font-size:13.5px;line-height:1.55;color:var(--muted);margin:0
+}
 .theme-picker{display:inline-flex;background:var(--paper-2);border-radius:8px;padding:3px;gap:1px}
 .theme-btn{padding:7px 14px;font-size:12px;font-weight:500;border:0;background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
 .theme-btn:hover{color:var(--ink)}
@@ -1309,12 +1340,17 @@ td.avere{color:var(--green)}
           </div>
         </div>
 
-        <div class="settings-card" id="team-info-card" style="display:none">
-          <div class="settings-card-head">Team</div>
-          <div class="settings-row">
-            <div class="settings-row-text">
-              <strong>Sei membro del team di <span id="team-info-owner">—</span></strong>
-              <span>Stai usando il piano del proprietario del team. Le analisi che salvi sono visibili a lui e agli altri membri del team. Solo il proprietario può aggiungere o rimuovere membri.</span>
+        <div class="team-info-special" id="team-info-card" style="display:none">
+          <div class="team-info-decor"></div>
+          <div class="team-info-eyebrow">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Fai parte del team
+          </div>
+          <div class="team-info-body">
+            <div class="team-info-avatar" id="team-info-avatar">·</div>
+            <div class="team-info-content">
+              <h3 class="team-info-name" id="team-info-owner">—</h3>
+              <p class="team-info-desc">Stai usando il piano del proprietario del team. Le analisi che salvi sono visibili a lui e agli altri membri. Solo il proprietario può aggiungere o rimuovere membri.</p>
             </div>
           </div>
         </div>
@@ -1980,6 +2016,11 @@ async function renderTeamCard(){
       const ownerLabel=CURRENT_PROFILE.team_owner_name||CURRENT_PROFILE.team_owner_email||'—';
       const ownerEl=document.getElementById('team-info-owner');
       if(ownerEl)ownerEl.textContent=ownerLabel;
+      const av=document.getElementById('team-info-avatar');
+      if(av){
+        const initial=(ownerLabel||'·').trim().charAt(0).toUpperCase()||'·';
+        av.textContent=initial;
+      }
     }
     return;
   }
