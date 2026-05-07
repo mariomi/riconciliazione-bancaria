@@ -1705,13 +1705,19 @@ function renderUsage(){
   const bar=document.getElementById('usage-bar');
   const up=document.getElementById('usage-upgrade');
   if(!cnt)return;
-  cnt.textContent=CURRENT_COUNT;
+  // Cap the displayed count at the quota: when a user drops from a higher plan
+  // (e.g. team Pro+ → Free dopo essere stato tolto dal team) il count raw può
+  // essere oltre la quota nuova. Evitiamo di mostrare "19 / 2" — mostriamo
+  // "2 / 2" che è chiaro e non sembra un bug. La logica di blocco quota usa
+  // comunque CURRENT_COUNT raw, quindi non cambia il comportamento.
   if(quota===Infinity){
+    cnt.textContent=CURRENT_COUNT;
     qt.textContent=' / illimitate';
     bar.style.width='100%';
     bar.className='usage-bar-fill';
     up.style.display='none';
   }else{
+    cnt.textContent=Math.min(CURRENT_COUNT,quota);
     qt.textContent=' / '+quota+' questo mese';
     const pct=Math.min(100,Math.round(CURRENT_COUNT/quota*100));
     bar.style.width=pct+'%';
@@ -2559,12 +2565,19 @@ setInterval(()=>{
   }catch(e){}
 },5*60*1000);
 
-// Also re-check when the tab regains focus
+// Refresh plan + usage every time the tab regains focus, throttled to once
+// every 30 seconds to avoid hammering on rapid blur/focus cycles. Catches:
+//  - month rollover (CURRENT_COUNT resets to 0 of the new month)
+//  - team kick (owner removed user from team_members → CURRENT_PROFILE.plan
+//    falls back to the user's own profile.plan immediately on next focus)
+//  - plan upgrade applied server-side
+let _LAST_PROFILE_REFRESH=Date.now();
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible' && typeof _monthKey==='function'
-     && _LAST_MONTH_LOADED && _monthKey()!==_LAST_MONTH_LOADED){
-    loadProfileAndUsage().catch(()=>{});
-  }
+  if(document.visibilityState!=='visible')return;
+  const now=Date.now();
+  if(now-_LAST_PROFILE_REFRESH<30000)return;
+  _LAST_PROFILE_REFRESH=now;
+  loadProfileAndUsage().catch(()=>{});
 });
 
 // ===== STATE =====
@@ -3505,8 +3518,11 @@ async function runAll(){
   try{await loadProfileAndUsage();}catch(e){console.warn('quota refresh failed',e)}
   if(typeof quotaReached==='function'&&quotaReached()){
     _abortLoader();
-    const plan=PLAN_LABEL[(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free'];
-    if(confirm('Hai raggiunto il limite del piano '+plan+' ('+CURRENT_COUNT+' analisi questo mese).\n\nPassa a un piano superiore per più analisi.\n\nVai alla pagina dei piani?')){
+    const planKey=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+    const plan=PLAN_LABEL[planKey];
+    const q=PLAN_QUOTA[planKey];
+    const shown=q===Infinity?CURRENT_COUNT:Math.min(CURRENT_COUNT,q);
+    if(confirm('Hai raggiunto il limite del piano '+plan+' ('+shown+'/'+q+' analisi questo mese).\n\nPassa a un piano superiore per più analisi.\n\nVai alla pagina dei piani?')){
       goSection('pricing');
     }
     return;
