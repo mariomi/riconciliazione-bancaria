@@ -220,6 +220,18 @@ body{
 .history-card .h-star.on{color:var(--amber);background:var(--amber-soft);border-color:var(--amber)}
 .history-card .h-star.on svg{fill:currentColor}
 .history-empty{padding:48px 32px;text-align:center;color:var(--muted);font-size:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
+/* ===== STORICO PAGER ===== */
+.history-pager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:24px;flex-wrap:wrap}
+.history-pager .pg-btn{
+  min-width:34px;height:34px;padding:0 10px;background:var(--paper);border:1px solid var(--line);
+  border-radius:8px;color:var(--ink);font-family:inherit;font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;
+}
+.history-pager .pg-btn:hover:not(:disabled):not(.active){border-color:var(--line-2);background:var(--paper-2)}
+.history-pager .pg-btn:disabled{opacity:.4;cursor:not-allowed}
+.history-pager .pg-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.history-pager .pg-dots{color:var(--muted-2);padding:0 4px;font-size:13px}
+.history-pager .pg-info{margin-left:14px;font-size:12px;color:var(--muted)}
 
 /* Plan-gate overlay (Free users): blurs the whole Storico section */
 #sec-history{position:relative;min-height:520px}
@@ -333,6 +345,9 @@ body{
 .btn-secondary:hover{color:var(--ink)}
 .btn-outline{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
 .btn-outline:hover{border-color:var(--ink);background:#fff}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red)}
+.btn-danger:hover:not(:disabled){background:var(--red);color:#fff}
+.btn-danger:disabled{opacity:.5;cursor:not-allowed}
 .btn-sm{font-size:12.5px;padding:7px 14px}
 
 /* ===== DASHBOARD ===== */
@@ -717,7 +732,21 @@ td.avere{color:var(--green)}
 /* ===== UTILITIES ===== */
 .tab-content{display:none}.tab-content.on{display:block}
 
-/* ===== RESPONSIVE ===== */
+/* ===== MOBILE NAV ===== */
+.mobile-menu-btn{
+  display:none;background:transparent;border:0;color:var(--ink);
+  width:40px;height:40px;border-radius:8px;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;margin-right:6px;flex-shrink:0;
+}
+.mobile-menu-btn:hover{background:var(--paper-2)}
+.mobile-nav-overlay{
+  display:none;position:fixed;inset:0;background:rgba(28,28,28,.45);
+  z-index:998;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  opacity:0;transition:opacity .2s;
+}
+.mobile-nav-overlay.on{display:block;opacity:1}
+
+/* ===== RESPONSIVE: tablet (≤980px) ===== */
 @media(max-width:980px){
   .sidebar{width:60px;padding:20px 8px}
   .brand,.nav-item span:not(.nav-icon),.sidebar-foot,.nav-divider{display:none}
@@ -730,9 +759,96 @@ td.avere{color:var(--green)}
   .bank-row{flex-direction:column;align-items:flex-start;gap:10px}
   .bank-row-features{justify-content:flex-start}
 }
-@media(max-width:640px){
+
+/* ===== RESPONSIVE: phone (≤768px) ===== */
+@media(max-width:768px){
+  /* Hide the icon-strip sidebar on phones; replace with a slide-in drawer + hamburger. */
+  .sidebar{
+    position:fixed;top:0;left:0;height:100vh;width:260px;padding:24px 16px;
+    background:#fff;border-right:1px solid var(--line);
+    transform:translateX(-100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);
+    z-index:999;box-shadow:0 18px 48px rgba(0,0,0,.18);
+    overflow-y:auto;
+  }
+  .sidebar.mobile-open{transform:translateX(0)}
+  /* Inside the drawer we want full labels back */
+  .sidebar.mobile-open .brand,
+  .sidebar.mobile-open .nav-item span:not(.nav-icon),
+  .sidebar.mobile-open .sidebar-foot,
+  .sidebar.mobile-open .nav-divider{display:revert}
+  .sidebar.mobile-open .nav-item{justify-content:flex-start;padding:11px 12px;font-size:15px}
+  .sidebar.mobile-open .nav-icon{width:18px;height:18px}
+  .mobile-menu-btn{display:inline-flex}
+  .topbar{padding:12px 16px;gap:10px}
+  .topbar-title{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar-actions{gap:6px}
+  /* Hide email + plan badge on small screens to save room */
+  #user-info{display:none!important}
+  .content{padding:24px 16px 60px}
+  .app{display:block}
+  .main{min-height:100vh}
+  /* Page heads + key headings */
+  .page-head h1{font-size:30px;line-height:1.1}
+  .page-head p{font-size:13.5px}
+  /* Stats grid: 2 columns on phone */
   .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .filter-input{width:100%}
+  .stat-card{padding:14px 16px;border-right:0;border-bottom:1px solid var(--line)}
+  .stat-card:nth-child(odd){border-right:1px solid var(--line)}
+  .stat-card:nth-last-child(-n+2){border-bottom:0}
+  .stat-value{font-size:22px}
+  .stat-label{font-size:10.5px}
+  /* Tables: keep horizontal scroll on phones; reduce padding */
+  .table-scroll{max-height:420px}
+  thead th,tbody td{padding:8px 10px;font-size:12px}
+  .desc-cell{max-width:160px}
+  /* Sub-section heads */
+  .sub-section-head{padding:18px 0 10px}
+  .sub-section-head h3{font-size:12.5px}
+  /* Filter bar: stack inputs */
+  .filter-bar{flex-direction:column;align-items:stretch;gap:8px}
+  .filter-bar > div[style*="flex:1"]{display:none}
+  .filter-input,.filter-select{width:100%}
+  /* Usage card: stack vertically */
+  .usage-card{flex-direction:column;align-items:flex-start;padding:18px 18px;gap:14px}
+  .usage-right{align-items:flex-start;width:100%}
+  .usage-bar{width:100%}
+  .usage-left .usage-num{font-size:36px}
+  /* Settings rows: stack input + button */
+  .settings-row{flex-direction:column;align-items:stretch;gap:12px}
+  .settings-row .toggle{align-self:flex-end}
+  .settings-row .btn{align-self:flex-start}
+  /* Storico card: smaller serif title, tighter padding, hide the chevron */
+  .history-card{padding:18px 18px;gap:12px}
+  .history-card .h-name{font-size:20px;margin-bottom:4px}
+  .history-card .h-meta{font-size:12px}
+  .history-card .h-arrow{display:none}
+  .history-card .h-star{width:36px;height:36px}
+  .history-pager .pg-info{display:none}
+  .history-pager{gap:4px}
+  .history-pager .pg-btn{min-width:32px;height:32px;font-size:12px}
+  /* Detail view */
+  .history-detail-head{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:18px}
+  .history-detail-head h2{font-size:24px}
+  /* Plan-gate card */
+  .hist-plangate-card{padding:24px 22px}
+  .hist-plangate-card h3{font-size:24px}
+  /* Pricing grid (in-app Piani) */
+  .pricing-grid{grid-template-columns:1fr}
+  /* Bank cards */
+  .bank-row{padding:18px 18px}
+  /* Modals */
+  .quota-banner{flex-direction:column;align-items:flex-start;text-align:left}
+}
+
+/* ===== RESPONSIVE: small phones (≤420px) ===== */
+@media(max-width:420px){
+  .topbar-actions .btn-primary{padding:7px 10px;font-size:12px}
+  .topbar-actions .btn-outline{padding:7px 10px;font-size:12px}
+  .stats-grid{grid-template-columns:1fr}
+  .stat-card{border-right:0!important;border-bottom:1px solid var(--line)}
+  .stat-card:last-child{border-bottom:0}
+  .page-head h1{font-size:26px}
+  .history-card .h-name{font-size:18px}
 }
 </style>
 </head>
@@ -783,9 +899,15 @@ td.avere{color:var(--green)}
     <div class="sidebar-foot">v 2.1</div>
   </aside>
 
+  <!-- Mobile nav backdrop (only visible when the drawer is open on small screens) -->
+  <div id="mobile-nav-overlay" class="mobile-nav-overlay"></div>
+
   <!-- ==================== MAIN ==================== -->
   <main class="main">
     <div class="topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Menu" type="button">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="topbar-title" id="tb-title">Dashboard</div>
       <div class="topbar-actions">
         <span id="user-info" style="display:inline-flex;align-items:center;gap:8px;margin-right:6px">
@@ -1021,15 +1143,9 @@ td.avere{color:var(--green)}
         </div>
 
         <div class="hist-inner">
-        <div class="page-head" style="display:flex;align-items:flex-start;gap:16px;justify-content:space-between">
-          <div style="flex:1;min-width:0">
-            <h1>Storico <em>analisi</em>.</h1>
-            <p>Le tue ultime riconciliazioni con le tabelle di match. Lo storico viene mantenuto in base al tuo piano (<span id="hist-retention">—</span>): clicca la stellina per salvare un'analisi a tempo indeterminato.</p>
-          </div>
-          <button class="btn btn-outline btn-sm" id="history-refresh-btn" onclick="refreshHistory()" style="flex-shrink:0;align-self:center;display:inline-flex;align-items:center;gap:6px" title="Ricarica lo storico">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-            Ricarica
-          </button>
+        <div class="page-head">
+          <h1>Storico <em>analisi</em>.</h1>
+          <p>Le tue ultime riconciliazioni con le tabelle di match. Lo storico viene mantenuto in base al tuo piano (<span id="hist-retention">—</span>): clicca la stellina per salvare un'analisi a tempo indeterminato.</p>
         </div>
 
         <div id="history-list-view">
@@ -1049,6 +1165,7 @@ td.avere{color:var(--green)}
               <button class="btn btn-outline btn-sm" onclick="goSection('settings')">Attiva</button>
             </div>
             <div id="history-list" class="history-list"></div>
+            <div id="history-pager" class="history-pager" style="display:none"></div>
             <div id="history-empty" class="history-empty" style="display:none">
               Nessuna analisi salvata. Le prossime riconciliazioni che lancerai compariranno qui.
             </div>
@@ -1344,6 +1461,14 @@ td.avere{color:var(--green)}
               <button class="btn btn-primary btn-sm" onclick="goSection('pricing')">Passa a Pro</button>
             </div>
           </div>
+          <div class="settings-row" id="hist-purge-row">
+            <div class="settings-row-text">
+              <strong>Elimina tutto lo storico</strong>
+              <span>Cancella definitivamente tutte le analisi salvate sul server, comprese quelle preferite. L'azione non è reversibile.</span>
+              <span id="hist-purge-count" style="display:block;margin-top:6px;font-size:12px;color:var(--muted-2)"></span>
+            </div>
+            <button class="btn btn-danger btn-sm" id="hist-purge-btn" onclick="purgeAllHistory()">Elimina tutto</button>
+          </div>
         </div>
 
         <div class="team-info-special" id="team-info-card" style="display:none">
@@ -1503,6 +1628,9 @@ async function loadProfileAndUsage(){
   const locked=(planNow==='free');
   if(lockRow){lockRow.classList.toggle('locked',locked)}
   if(lockOv){lockOv.style.display=locked?'flex':'none'}
+  // Hide the "Elimina tutto" row for Free users (they have no analyses on the server)
+  const purgeRow=document.getElementById('hist-purge-row');
+  if(purgeRow)purgeRow.style.display=locked?'none':'flex';
   // If locked and the toggle was previously ON for some reason, force OFF
   if(locked && isHistoryEnabled()){
     setHistoryEnabled(false);
@@ -1660,6 +1788,48 @@ async function onHistoryToggle(on){
   }
 }
 
+// Permanently delete every saved analysis for the current user (Settings → Privacy e dati)
+async function purgeAllHistory(){
+  const btn=document.getElementById('hist-purge-btn');
+  try{
+    const u=await window.AUTH.user();
+    if(!u){alert('Sessione scaduta. Effettua di nuovo il login.');return;}
+    // Count first so the confirm dialog gives a real number
+    const{count}=await window.AUTH.client.from('analyses').select('*',{count:'exact',head:true}).eq('user_id',u.id);
+    const n=count||0;
+    if(n===0){alert('Non hai analisi salvate da eliminare.');return;}
+    const ok=confirm('Stai per eliminare DEFINITIVAMENTE '+n+' analisi (incluse le preferite). L\'azione non è reversibile. Continuare?');
+    if(!ok)return;
+    if(btn){btn.disabled=true;btn.textContent='Elimino…';}
+    const{error}=await window.AUTH.client.from('analyses').delete().eq('user_id',u.id);
+    if(error)throw error;
+    HISTORY_CACHE=[];
+    HISTORY_PAGE=1;
+    if(document.getElementById('sec-history')?.classList.contains('on'))renderHistoryView();
+    refreshHistoryPurgeCount();
+    alert('Eliminate '+n+' analisi.');
+  }catch(e){
+    alert('Errore: '+(e.message||String(e)));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Elimina tutto';}
+  }
+}
+
+// Refresh the "(N analisi salvate)" hint next to the danger button
+async function refreshHistoryPurgeCount(){
+  const el=document.getElementById('hist-purge-count');
+  const btn=document.getElementById('hist-purge-btn');
+  if(!el)return;
+  try{
+    const u=await window.AUTH.user();
+    if(!u){el.textContent='';return;}
+    const{count}=await window.AUTH.client.from('analyses').select('*',{count:'exact',head:true}).eq('user_id',u.id);
+    const n=count||0;
+    el.textContent=n===0?'Non hai analisi salvate.':n+' analisi salvate al momento.';
+    if(btn)btn.disabled=(n===0);
+  }catch(e){el.textContent='';}
+}
+
 async function recordAnalysis(){
   // Always bump quota counter — both server (when ON) and local (always)
   CURRENT_COUNT++;
@@ -1712,6 +1882,7 @@ async function recordAnalysis(){
 // ===== STORICO =====
 let HISTORY_CACHE=null;
 let HISTORY_CURRENT=null; // currently-open analysis in detail view
+let HISTORY_PAGE=1;
 
 function fmtDate(iso){
   if(!iso)return '—';
@@ -1744,6 +1915,8 @@ async function loadHistory(){
       .limit(200);
     if(error)throw error;
     HISTORY_CACHE=data||[];
+    // Reset to first page only on fresh loads (cache invalidation)
+    if(typeof HISTORY_PAGE!=='number'||HISTORY_PAGE<1)HISTORY_PAGE=1;
     console.log('[loadHistory] caricate',HISTORY_CACHE.length,'analisi per',u.email);
   }catch(e){
     console.error('[loadHistory] errore:',e);
@@ -1752,17 +1925,6 @@ async function loadHistory(){
   }
 }
 
-// Manual reload triggered by the "Ricarica" button in the storico header
-async function refreshHistory(){
-  const btn=document.getElementById('history-refresh-btn');
-  if(btn){btn.disabled=true;btn.style.opacity='.6';}
-  try{
-    HISTORY_CACHE=null;
-    await renderHistoryView();
-  }finally{
-    if(btn){btn.disabled=false;btn.style.opacity='1';}
-  }
-}
 
 async function renderHistoryView(){
   const sec=document.getElementById('sec-history');
@@ -1791,18 +1953,27 @@ async function renderHistoryView(){
   if(!list)return;
   if(!HISTORY_CACHE.length){
     list.innerHTML='';
+    const pager=document.getElementById('history-pager');
+    if(pager)pager.style.display='none';
     if(empty){
       empty.style.display='block';
       if(HISTORY_LAST_ERR){
-        empty.innerHTML='<div style="color:var(--red);font-weight:500;margin-bottom:8px">Errore di caricamento</div><div style="font-size:12.5px;color:var(--muted);font-family:monospace;margin-bottom:14px">'+esc(HISTORY_LAST_ERR)+'</div><button class="btn btn-primary btn-sm" onclick="refreshHistory()">Riprova</button>';
+        empty.innerHTML='<div style="color:var(--red);font-weight:500;margin-bottom:8px">Errore di caricamento</div><div style="font-size:12.5px;color:var(--muted);font-family:monospace">'+esc(HISTORY_LAST_ERR)+'</div>';
       }else{
-        empty.innerHTML='Nessuna analisi salvata. Le prossime riconciliazioni che lancerai compariranno qui.<div style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="refreshHistory()">Ricarica</button></div>';
+        empty.textContent='Nessuna analisi salvata. Le prossime riconciliazioni che lancerai compariranno qui.';
       }
     }
     return;
   }
   if(empty)empty.style.display='none';
-  list.innerHTML=HISTORY_CACHE.map(a=>{
+  // Pagination: 25 per page
+  const PER_PAGE=25;
+  const totalPages=Math.max(1,Math.ceil(HISTORY_CACHE.length/PER_PAGE));
+  if(HISTORY_PAGE>totalPages)HISTORY_PAGE=totalPages;
+  if(HISTORY_PAGE<1)HISTORY_PAGE=1;
+  const startIdx=(HISTORY_PAGE-1)*PER_PAGE;
+  const pageRows=HISTORY_CACHE.slice(startIdx,startIdx+PER_PAGE);
+  list.innerHTML=pageRows.map(a=>{
     const cls='history-card'+(a.is_starred?' starred':'');
     const totMov=(a.num_movimenti_partitario||0)+(a.num_movimenti_estratto||0);
     return `<div class="${cls}" onclick="openHistoryDetail('${a.id}')">
@@ -1818,6 +1989,37 @@ async function renderHistoryView(){
       </div>
     </div>`;
   }).join('');
+  renderHistoryPager(totalPages);
+}
+
+function renderHistoryPager(totalPages){
+  const pager=document.getElementById('history-pager');
+  if(!pager)return;
+  if(totalPages<=1){pager.style.display='none';return;}
+  pager.style.display='flex';
+  // Build page buttons: window of 5 around current, with first/last
+  const pages=new Set([1,totalPages,HISTORY_PAGE-1,HISTORY_PAGE,HISTORY_PAGE+1]);
+  if(HISTORY_PAGE<=3){pages.add(2);pages.add(3);pages.add(4);}
+  if(HISTORY_PAGE>=totalPages-2){pages.add(totalPages-1);pages.add(totalPages-2);pages.add(totalPages-3);}
+  const sorted=[...pages].filter(p=>p>=1&&p<=totalPages).sort((a,b)=>a-b);
+  let html='<button class="pg-btn" onclick="gotoHistoryPage('+(HISTORY_PAGE-1)+')"'+(HISTORY_PAGE<=1?' disabled':'')+' aria-label="Precedente"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  let prev=0;
+  for(const p of sorted){
+    if(prev && p-prev>1)html+='<span class="pg-dots">…</span>';
+    html+='<button class="pg-btn pg-num'+(p===HISTORY_PAGE?' active':'')+'" onclick="gotoHistoryPage('+p+')">'+p+'</button>';
+    prev=p;
+  }
+  html+='<button class="pg-btn" onclick="gotoHistoryPage('+(HISTORY_PAGE+1)+')"'+(HISTORY_PAGE>=totalPages?' disabled':'')+' aria-label="Successiva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>';
+  html+='<span class="pg-info">Pagina '+HISTORY_PAGE+' di '+totalPages+' · '+HISTORY_CACHE.length+' analisi</span>';
+  pager.innerHTML=html;
+}
+
+function gotoHistoryPage(p){
+  HISTORY_PAGE=p;
+  renderHistoryView();
+  // Scroll to top of list smoothly
+  const sec=document.getElementById('sec-history');
+  if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 async function toggleStar(id){
@@ -2255,8 +2457,38 @@ function goSection(name){
   window.scrollTo({top:0,behavior:'smooth'});
   // When entering Storico, render its current state
   if(name==='history'&&typeof renderHistoryView==='function')renderHistoryView();
-  if(name==='settings'&&typeof renderTeamCard==='function')renderTeamCard();
+  if(name==='settings'){
+    if(typeof renderTeamCard==='function')renderTeamCard();
+    if(typeof refreshHistoryPurgeCount==='function')refreshHistoryPurgeCount();
+  }
+  // Auto-close the mobile drawer after selecting a section
+  closeMobileNav();
 }
+
+// ===== MOBILE NAV (hamburger drawer for phone screens) =====
+function toggleMobileNav(){
+  const sb=document.querySelector('.sidebar');
+  const ov=document.getElementById('mobile-nav-overlay');
+  if(!sb)return;
+  const willOpen=!sb.classList.contains('mobile-open');
+  sb.classList.toggle('mobile-open',willOpen);
+  if(ov)ov.classList.toggle('on',willOpen);
+  document.body.style.overflow=willOpen?'hidden':'';
+}
+function closeMobileNav(){
+  const sb=document.querySelector('.sidebar');
+  const ov=document.getElementById('mobile-nav-overlay');
+  if(sb)sb.classList.remove('mobile-open');
+  if(ov)ov.classList.remove('on');
+  document.body.style.overflow='';
+}
+// Close drawer when clicking the overlay or pressing Escape
+document.addEventListener('click',e=>{
+  if(e.target&&e.target.id==='mobile-nav-overlay')closeMobileNav();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeMobileNav();
+});
 
 function toggleFAQ(item){item.classList.toggle('open')}
 

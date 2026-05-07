@@ -197,16 +197,33 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .footer-made{margin-top:8px;font-size:12px}
 
 @media (max-width:768px){
-  .hero{padding:64px 24px 56px}
-  .hero h1{font-size:48px;letter-spacing:-1.5px}
-  .section{padding:64px 24px}
-  .section-head h2{font-size:32px}
-  .features,.steps-grid,.big-stats{grid-template-columns:1fr}
+  .hero{padding:64px 20px 56px}
+  .hero h1{font-size:42px;letter-spacing:-1.2px;line-height:1.05}
+  .hero .lead{font-size:16px}
+  .section{padding:56px 20px}
+  .section-head h2{font-size:28px}
+  .section-head p{font-size:14px}
+  .features,.steps-grid,.big-stats{grid-template-columns:1fr;gap:18px}
   .showcase,.showcase.flip{grid-template-columns:1fr;gap:24px}
   .showcase.flip .showcase-mock{order:0}
+  .showcase h3{font-size:24px}
   .mock-stats{grid-template-columns:repeat(2,1fr)}
   .nav-links a:not(.btn){display:none}
-  .final-cta h2{font-size:32px}
+  .final-cta h2{font-size:28px}
+  .final-cta{padding:48px 22px}
+  .footer{padding:36px 20px}
+  .footer-cols{grid-template-columns:1fr 1fr;gap:24px}
+  .feature-card{padding:22px}
+  .step-card{padding:22px}
+  .stat-num{font-size:36px}
+}
+@media (max-width:480px){
+  .hero h1{font-size:34px}
+  .hero .lead{font-size:15px}
+  .section{padding:48px 18px}
+  .section-head h2{font-size:24px}
+  .footer-cols{grid-template-columns:1fr}
+  .mock-stats{grid-template-columns:1fr}
 }
 
 /* Ultra-wide screens: use more horizontal space */
