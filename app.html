@@ -2003,7 +2003,13 @@ async function renderHistoryView(){
   // whether NEW analyses will be saved, not whether existing ones are visible)
   if(dis)dis.style.display='none';
   if(content)content.classList.remove('history-faded');
-  await loadHistory();
+  // Use the cached data if it's already been loaded once — re-fetch only when
+  // the cache is null (first visit, or after cache invalidation by a new
+  // analysis / a manual delete-all) or when the previous attempt errored out.
+  // Switching tabs no longer re-queries the DB.
+  if(!HISTORY_CACHE || HISTORY_LAST_ERR){
+    await loadHistory();
+  }
   // If the toggle is OFF, surface a banner inside the list so the user knows
   // the next analyses will not be saved.
   const banner=document.getElementById('hist-off-banner');
