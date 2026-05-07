@@ -154,6 +154,7 @@ body{
 }
 .plan-badge.plan-pro{background:var(--ink);color:#fff;border-color:var(--ink)}
 .plan-badge.plan-pro_plus{background:var(--amber);color:#fff;border-color:var(--amber)}
+.plan-badge.plan-team{background:transparent;color:var(--ink);border:1px solid var(--line-2);font-weight:500}
 .plan-badge.plan-business{background:var(--green);color:#fff;border-color:var(--green)}
 
 .usage-card{
@@ -1416,15 +1417,16 @@ async function loadProfileAndUsage(){
   const plan=(CURRENT_PROFILE.plan||'free').toLowerCase();
   // Plan badge in topbar
   const badge=document.getElementById('plan-badge');
-  const teamSuffix=CURRENT_PROFILE.is_team_member?' · Team':'';
-  badge.textContent=(PLAN_LABEL[plan]||plan)+teamSuffix;
-  badge.className='plan-badge plan-'+plan;
-  badge.style.display='inline-block';
   if(CURRENT_PROFILE.is_team_member){
+    badge.textContent='Team '+(PLAN_LABEL[plan]||plan);
+    badge.className='plan-badge plan-team';
     badge.title='Stai usando il team di '+(CURRENT_PROFILE.team_owner_name||CURRENT_PROFILE.team_owner_email||'qualcuno');
   }else{
+    badge.textContent=PLAN_LABEL[plan]||plan;
+    badge.className='plan-badge plan-'+plan;
     badge.removeAttribute('title');
   }
+  badge.style.display='inline-block';
   // Count of analyses for the current calendar month (matches quota period)
   const{count}=await window.AUTH.client
     .from('analyses')
@@ -1437,6 +1439,8 @@ async function loadProfileAndUsage(){
   _cleanOldLocalCounts();
   renderUsage();
   updBtn&&updBtn();
+  // Auto-enable storico for paid plans (incl. team members) on first run
+  maybeAutoEnableHistory(plan);
   // Sync history toggle in Settings
   const tog=document.getElementById('toggle-history');
   if(tog)tog.checked=isHistoryEnabled();
@@ -1481,8 +1485,19 @@ function renderUsage(){
 
 // History toggle persistence (Settings → Privacy e dati)
 const HIST_KEY='reconcilia.history-enabled';
+const HIST_TOUCHED_KEY='reconcilia.history-touched';
 function isHistoryEnabled(){return localStorage.getItem(HIST_KEY)==='1'}
-function setHistoryEnabled(v){localStorage.setItem(HIST_KEY,v?'1':'0')}
+function setHistoryEnabled(v){
+  localStorage.setItem(HIST_KEY,v?'1':'0');
+  localStorage.setItem(HIST_TOUCHED_KEY,'1');
+}
+// Auto-enable storico the first time a paid plan is detected (only if the
+// user has never explicitly chosen). Free users stay locked off.
+function maybeAutoEnableHistory(plan){
+  if(plan==='free')return;
+  if(localStorage.getItem(HIST_TOUCHED_KEY)==='1')return;
+  localStorage.setItem(HIST_KEY,'1');
+}
 
 // Local monthly counter (used when history is disabled — keeps quota client-side)
 // Keyed by YYYY-MM so it auto-resets every 1st of the month: a new key means
