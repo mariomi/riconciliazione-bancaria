@@ -946,7 +946,7 @@ td.avere{color:var(--green)}
       <section class="section" id="sec-history">
         <div class="page-head">
           <h1>Storico <em>analisi</em>.</h1>
-          <p>Le tue ultime riconciliazioni con le tabelle di match. Conserviamo gli ultimi 3 mesi: clicca la stellina per salvare un'analisi a tempo indeterminato.</p>
+          <p>Le tue ultime riconciliazioni con le tabelle di match. Lo storico viene mantenuto in base al tuo piano (<span id="hist-retention">—</span>): clicca la stellina per salvare un'analisi a tempo indeterminato.</p>
         </div>
 
         <div id="history-list-view">
@@ -1088,7 +1088,8 @@ td.avere{color:var(--green)}
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>40 analisi al mese</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tutte le 5 banche supportate</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PDF annotati con match colorati</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Storico analisi 12 mesi</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Storico analisi 4 mesi</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Multi-utente fino a 3</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Supporto via email</li>
             </ul>
             <button class="btn btn-primary" data-action="select-plan" data-plan="pro">Passa a Pro</button>
@@ -1100,8 +1101,8 @@ td.avere{color:var(--green)}
             <div class="price-per">fatturazione mensile</div>
             <ul class="price-feats">
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>100 analisi al mese</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Storico analisi illimitato</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Multi-utente (fino a 3)</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Storico analisi 12 mesi</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Multi-utente fino a 5</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Export Excel risultati</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Supporto prioritario</li>
             </ul>
@@ -1288,6 +1289,7 @@ td.avere{color:var(--green)}
 // ===== AUTH BOOTSTRAP + PROFILE =====
 const PLAN_QUOTA={free:2,pro:40,pro_plus:100,business:Infinity};
 const PLAN_LABEL={free:'Free',pro:'Pro',pro_plus:'Pro+',business:'Business'};
+const PLAN_HISTORY_RETENTION={free:'1 mese',pro:'4 mesi',pro_plus:'12 mesi',business:'24 mesi'};
 let CURRENT_PROFILE=null;
 let CURRENT_COUNT=0;
 
@@ -1530,6 +1532,12 @@ async function renderHistoryView(){
   const content=document.getElementById('history-content');
   const detail=document.getElementById('history-detail');
   if(detail)detail.classList.remove('on');
+  // Plan-aware retention copy
+  const ret=document.getElementById('hist-retention');
+  if(ret){
+    const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+    ret.textContent=PLAN_HISTORY_RETENTION[plan]||'1 mese';
+  }
   if(!isHistoryEnabled()){
     if(dis)dis.style.display='block';
     if(content)content.classList.add('history-faded');
