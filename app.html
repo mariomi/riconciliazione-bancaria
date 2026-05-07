@@ -219,7 +219,9 @@ body{
 .history-detail .back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);background:transparent;border:0;cursor:pointer;font-family:inherit;padding:0;margin-bottom:14px}
 .history-detail .back:hover{color:var(--ink)}
 .history-detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:18px}
-.history-detail-head h2{font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;letter-spacing:-.5px;margin:0}
+.history-detail-head h2{font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;letter-spacing:-.5px;margin:0;outline:0;border-radius:6px;padding:2px 8px;margin-left:-8px;transition:background .15s}
+.history-detail-head h2:hover{background:var(--paper-2)}
+.history-detail-head h2:focus{background:var(--paper-2);box-shadow:inset 0 0 0 1px var(--line-2)}
 .history-detail-meta{font-size:12px;color:var(--muted)}
 .history-tbl-wrap{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
 .history-tbl-head{padding:12px 18px;background:var(--paper-2);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
@@ -590,6 +592,13 @@ td.avere{color:var(--green)}
 .theme-btn{padding:7px 14px;font-size:12px;font-weight:500;border:0;background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
 .theme-btn:hover{color:var(--ink)}
 .theme-btn.active{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+
+/* Locked feature overlay (Free plan) */
+#hist-toggle-row{position:relative}
+#hist-toggle-row.locked .settings-row-text,
+#hist-toggle-row.locked .toggle{filter:blur(2px) grayscale(.5);opacity:.5;pointer-events:none;user-select:none}
+.lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 22px;background:linear-gradient(90deg,transparent,rgba(250,250,247,.7) 35%,var(--paper) 70%);border-radius:inherit}
+.lock-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--paper-2);padding:6px 12px;border-radius:980px;border:1px solid var(--line)}
 
 /* ===== BOUNCING BALL LOADER ===== */
 .bb-loader-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;gap:18px}
@@ -970,8 +979,8 @@ td.avere{color:var(--green)}
         <div id="history-detail" class="history-detail">
           <button type="button" class="back" onclick="closeHistoryDetail()">← Torna allo storico</button>
           <div class="history-detail-head">
-            <div>
-              <h2 id="hd-title">—</h2>
+            <div style="flex:1;min-width:0">
+              <h2 id="hd-title" contenteditable="true" spellcheck="false" onblur="saveHistoryName(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}" title="Clicca per rinominare">—</h2>
               <div class="history-detail-meta" id="hd-meta">—</div>
             </div>
             <button class="h-star" id="hd-star-btn" onclick="toggleStarDetail()" title="Salva permanentemente">
@@ -1237,23 +1246,23 @@ td.avere{color:var(--green)}
             </div>
             <button class="btn btn-outline btn-sm" onclick="goSection('pricing')">Cambia piano</button>
           </div>
-          <div class="settings-row">
-            <div class="settings-row-text">
-              <strong>Password</strong>
-              <span>Ricevi un link via email per cambiarla.</span>
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="sendPasswordReset()">Reset password</button>
-          </div>
         </div>
 
         <div class="settings-card">
           <div class="settings-card-head">Privacy e dati</div>
-          <div class="settings-row">
+          <div class="settings-row" id="hist-toggle-row">
             <div class="settings-row-text">
               <strong>Salva risultati nello storico</strong>
               <span>Quando attivo, le analisi vengono salvate nel tuo storico utente. Quando disattivato (default) niente viene memorizzato sui nostri server — solo i conteggi aggregati di quota.</span>
             </div>
             <label class="toggle"><input type="checkbox" id="toggle-history" onchange="onHistoryToggle(this.checked)"><span class="slider"></span></label>
+            <div class="lock-overlay" id="hist-lock-overlay" style="display:none">
+              <div class="lock-pill">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Disponibile da Pro
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="goSection('pricing')">Passa a Pro</button>
+            </div>
           </div>
         </div>
 
@@ -1265,6 +1274,13 @@ td.avere{color:var(--green)}
               <span>Termina tutte le sessioni attive su questo account.</span>
             </div>
             <button class="btn btn-outline btn-sm" onclick="window.AUTH.signOut()">Esci</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Elimina account</strong>
+              <span>Per eliminare definitivamente il tuo account e tutti i dati associati, contattaci. Procederemo entro 30 giorni dalla richiesta.</span>
+            </div>
+            <a class="btn btn-outline btn-sm" href="mailto:contact@netawebstest.com?subject=Richiesta%20eliminazione%20account">Contattaci</a>
           </div>
         </div>
 
@@ -1332,6 +1348,18 @@ async function loadProfileAndUsage(){
   // Sync history toggle in Settings
   const tog=document.getElementById('toggle-history');
   if(tog)tog.checked=isHistoryEnabled();
+  // Lock the toggle on Free plan
+  const lockRow=document.getElementById('hist-toggle-row');
+  const lockOv=document.getElementById('hist-lock-overlay');
+  const planNow=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
+  const locked=(planNow==='free');
+  if(lockRow){lockRow.classList.toggle('locked',locked)}
+  if(lockOv){lockOv.style.display=locked?'flex':'none'}
+  // If locked and the toggle was previously ON for some reason, force OFF
+  if(locked && isHistoryEnabled()){
+    setHistoryEnabled(false);
+    if(tog)tog.checked=false;
+  }
 }
 
 function renderUsage(){
@@ -1639,6 +1667,23 @@ function closeHistoryDetail(){
   document.getElementById('history-list-view').style.display='block';
   HISTORY_CURRENT=null;
 }
+async function saveHistoryName(el){
+  if(!HISTORY_CURRENT)return;
+  const newName=(el.textContent||'').trim();
+  if(!newName){el.textContent=HISTORY_CURRENT.name||'Senza nome';return}
+  if(newName===HISTORY_CURRENT.name)return;
+  try{
+    const{error}=await window.AUTH.client.from('analyses').update({name:newName}).eq('id',HISTORY_CURRENT.id);
+    if(error)throw error;
+    HISTORY_CURRENT.name=newName;
+    const idx=HISTORY_CACHE.findIndex(x=>x.id===HISTORY_CURRENT.id);
+    if(idx>=0)HISTORY_CACHE[idx].name=newName;
+  }catch(e){
+    alert('Errore: '+e.message);
+    el.textContent=HISTORY_CURRENT.name||'Senza nome';
+  }
+}
+
 async function toggleStarDetail(){
   if(!HISTORY_CURRENT)return;
   await toggleStar(HISTORY_CURRENT.id);
