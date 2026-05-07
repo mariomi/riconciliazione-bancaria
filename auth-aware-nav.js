@@ -1,23 +1,28 @@
-// Auth-aware navigation: if the user already has a Supabase session in
-// localStorage, rewrite all "Accedi" / "Inizia gratis" / "Crea account" CTAs
-// on the public site so they open the app directly. After rewriting we also
-// dedupe adjacent "Apri app" buttons inside the same container — otherwise
-// every login CTA collapses into a separate "Apri app" and you end up with
-// two of them sitting next to each other in the navbar.
+// Auth-aware navigation: rewrite the public-site "Accedi" / "Inizia gratis"
+// / "Crea account" CTAs to do the right thing depending on auth state.
 //
-// Logout clears localStorage so this script becomes a no-op until the user
-// logs in again.
+// NOT LOGGED IN
+//   No-op — la pagina mostra i bottoni originali (Accedi + Inizia gratis).
+//
+// LOGGED IN
+//   Convertiamo i CTA di login in azioni sensate per un utente autenticato:
+//   - Il bottone primary (Inizia gratis / Crea account) → "Apri app"
+//   - Il bottone outline (Accedi) → "Esci" con logout
+//   In questo modo il menu (sia desktop che mobile drawer) mostra DUE
+//   azioni utili invece di due "Apri app" identici o uno solo.
+//   Per i CTA in altri container (hero, footer) c'e' un solo bottone
+//   primary → "Apri app" e basta.
 (function () {
   var KEY = 'sb-vboflwsbwllbdidifxzq-auth-token';
   if (!localStorage.getItem(KEY)) return;
 
   var APP_LABEL = 'Apri app';
+  var LOGOUT_LABEL = 'Esci';
   var rewritten = [];
 
   document.querySelectorAll('a').forEach(function (a) {
     var href = a.getAttribute('href') || '';
     if (href !== 'login.html' && href.indexOf('login.html?') !== 0) return;
-    a.href = 'app.html';
     var txt = (a.textContent || '').trim().toLowerCase();
     if (
       txt === 'accedi' ||
@@ -28,14 +33,19 @@
       txt.indexOf('inizia con pro+') !== -1 ||
       txt.indexOf('inizia gratis') !== -1
     ) {
+      // default: rewrite to Apri app — i gruppi dedup-aware sotto possono
+      // poi cambiare il secondo bottone in "Esci"
+      a.href = 'app.html';
       a.textContent = APP_LABEL;
       rewritten.push(a);
     }
   });
 
   // Group rewritten buttons by their parent container (e.g. .nav-links,
-  // .hero-actions) and keep only the most prominent one per group. Hide the
-  // rest so we don't show two identical "Apri app" pills next to each other.
+  // .hero-actions). Per ogni gruppo:
+  //  - se c'e' 1 solo CTA: lascialo come "Apri app"
+  //  - se ce ne sono 2+: il primary resta "Apri app", l'outline diventa
+  //    "Esci" (logout). Cosi il menu mobile mostra sempre Apri app + Esci.
   var groups = {};
   rewritten.forEach(function (a) {
     var parent = a.parentElement;
@@ -58,15 +68,28 @@
 
   Object.keys(groups).forEach(function (id) {
     var arr = groups[id];
-    // Drop CTAs already hidden via CSS (e.g. .hero-mobile-cta on desktop): if
-    // we hide them here we'd inline-style display:none and break the media
-    // query that re-shows them on phone.
+    // Drop CTAs already hidden via CSS (es. .hero-mobile-cta su desktop):
+    // se li tocchiamo qui rompiamo la media query che li riattiva su phone.
     arr = arr.filter(function (a) { return a.offsetParent !== null; });
     if (arr.length <= 1) return;
-    // Keep the highest-ranked visible CTA, hide the rest.
+    // Sort: piu prominente per primo (primary > outline > generic btn)
     arr.sort(function (a, b) { return rank(b) - rank(a); });
-    for (var i = 1; i < arr.length; i++) {
-      arr[i].style.display = 'none';
-    }
+    // arr[0] resta "Apri app" (primary). arr[1] diventa "Esci" (logout).
+    var logoutBtn = arr[1];
+    logoutBtn.textContent = LOGOUT_LABEL;
+    logoutBtn.removeAttribute('href');
+    logoutBtn.style.cursor = 'pointer';
+    logoutBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      try {
+        // Cancella tutti i token Supabase + reindirizza a home
+        Object.keys(localStorage).forEach(function (k) {
+          if (k.indexOf('sb-') === 0) localStorage.removeItem(k);
+        });
+      } catch (_) {}
+      window.location.replace('index.html');
+    });
+    // Eventuali ulteriori bottoni (3+) li nascondiamo: caso raro.
+    for (var i = 2; i < arr.length; i++) arr[i].style.display = 'none';
   });
 })();
