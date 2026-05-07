@@ -1718,10 +1718,12 @@ function fmtDate(iso){
 }
 function fmtMoney(n){if(!n||isNaN(n))return '—';return Number(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}
 
+let HISTORY_LAST_ERR=null;
 async function loadHistory(){
+  HISTORY_LAST_ERR=null;
   try{
-    // Fire-and-forget cleanup of expired entries (>3 months, non-starred)
-    await window.AUTH.client.rpc('cleanup_old_analyses').catch(()=>{});
+    // Fire-and-forget cleanup of expired entries (plan-based retention)
+    await window.AUTH.client.rpc('cleanup_old_analyses').catch(e=>console.warn('cleanup failed',e));
     const{data,error}=await window.AUTH.client
       .from('analyses')
       .select('id,name,created_at,num_match_esatti,num_match_approx,num_non_trovati,num_movimenti_partitario,num_movimenti_estratto,is_starred,matches_data')
@@ -1730,8 +1732,10 @@ async function loadHistory(){
       .limit(200);
     if(error)throw error;
     HISTORY_CACHE=data||[];
+    console.log('[loadHistory] caricate',HISTORY_CACHE.length,'analisi');
   }catch(e){
-    console.error('loadHistory',e);
+    console.error('[loadHistory] errore:',e);
+    HISTORY_LAST_ERR=e.message||String(e);
     HISTORY_CACHE=[];
   }
 }
@@ -1763,7 +1767,14 @@ async function renderHistoryView(){
   if(!list)return;
   if(!HISTORY_CACHE.length){
     list.innerHTML='';
-    if(empty)empty.style.display='block';
+    if(empty){
+      empty.style.display='block';
+      if(HISTORY_LAST_ERR){
+        empty.innerHTML='<div style="color:var(--red);font-weight:500;margin-bottom:8px">Errore di caricamento</div><div style="font-size:12.5px;color:var(--muted);font-family:monospace">'+esc(HISTORY_LAST_ERR)+'</div>';
+      }else{
+        empty.textContent='Nessuna analisi salvata. Le prossime riconciliazioni che lancerai compariranno qui.';
+      }
+    }
     return;
   }
   if(empty)empty.style.display='none';
