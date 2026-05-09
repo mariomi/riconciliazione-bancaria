@@ -166,6 +166,52 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 }
 .dropdown-panel a.btn-primary:hover{background:var(--ink-2)}
 
+/* Desktop: il dropdown diventa una nav inline orizzontale, non un menu
+   cliccabile. Hamburger nascosto, panel "aperto" di default e in flusso. */
+@media(min-width:769px){
+  .dropdown-trigger{display:none}
+  .dropdown-panel{
+    position:static;
+    min-width:0;
+    background:transparent;
+    border:0;
+    box-shadow:none;
+    padding:0;
+    flex-direction:row;
+    align-items:center;
+    gap:6px;
+    opacity:1;
+    transform:none;
+    pointer-events:auto;
+    z-index:auto;
+    transition:none;
+  }
+  .dropdown-panel a:not(.btn){
+    padding:8px 12px;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--muted);
+    border-radius:7px;
+  }
+  .dropdown-panel a:not(.btn):hover{color:var(--ink);background:var(--paper-2)}
+  .dropdown-panel a.btn{
+    margin-top:0;
+    padding:9px 18px;
+    font-size:13px;
+    justify-content:center;
+  }
+  .dropdown-panel a.btn-outline{
+    color:var(--ink);
+    border:1px solid var(--line-2)!important;
+    background:transparent;
+  }
+  .dropdown-panel a.btn-outline:hover{background:var(--paper-2)}
+  .dropdown-panel a.btn-primary{
+    background:var(--ink);color:#fff;
+  }
+  .dropdown-panel a.btn-primary:hover{background:var(--ink-2)}
+}
+
 </style>
 </head>
 <body>
