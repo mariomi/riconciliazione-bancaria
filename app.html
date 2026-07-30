@@ -2019,8 +2019,11 @@ async function renderHistoryView(){
   const sec=document.getElementById('sec-history');
   const dis=document.getElementById('history-disabled');
   const content=document.getElementById('history-content');
+  const listView=document.getElementById('history-list-view');
   const detail=document.getElementById('history-detail');
+  if(listView)listView.style.removeProperty('display');
   if(detail)detail.classList.remove('on');
+  HISTORY_CURRENT=null;
   // Plan-aware retention copy
   const ret=document.getElementById('hist-retention');
   const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
