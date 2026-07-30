@@ -7,3 +7,6 @@ Thumbs.db
 
 # Node modules (se presenti)
 node_modules/
+
+# Output temporaneo per il deploy Sites
+dist/

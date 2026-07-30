@@ -67,12 +67,6 @@ html[data-theme="dark"]{
   --red:#e87370;
   --red-soft:rgba(232,115,112,.12);
 }
-html[data-density="compact"] .topbar{padding:12px 32px}
-html[data-density="compact"] .content{padding:28px 32px 60px}
-html[data-density="compact"] .page-head{margin-bottom:28px}
-html[data-density="compact"] .section{padding-top:28px}
-html[data-density="compact"] .settings-row{padding:12px 18px}
-
 html,body{height:100%}
 body{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -1488,16 +1482,6 @@ td.avere{color:var(--green)}
               <button type="button" class="theme-btn" data-theme="auto">Auto</button>
             </div>
           </div>
-          <div class="settings-row">
-            <div class="settings-row-text">
-              <strong>Densità interfaccia</strong>
-              <span>Più spazio o più contenuto a schermo.</span>
-            </div>
-            <div class="theme-picker" id="density-picker">
-              <button type="button" class="theme-btn" data-density="comfortable">Comoda</button>
-              <button type="button" class="theme-btn" data-density="compact">Compatta</button>
-            </div>
-          </div>
         </div>
 
         <div class="settings-card">
@@ -2019,8 +2003,11 @@ async function renderHistoryView(){
   const sec=document.getElementById('sec-history');
   const dis=document.getElementById('history-disabled');
   const content=document.getElementById('history-content');
+  const listView=document.getElementById('history-list-view');
   const detail=document.getElementById('history-detail');
+  if(listView)listView.style.removeProperty('display');
   if(detail)detail.classList.remove('on');
+  HISTORY_CURRENT=null;
   // Plan-aware retention copy
   const ret=document.getElementById('hist-retention');
   const plan=(CURRENT_PROFILE&&CURRENT_PROFILE.plan)||'free';
@@ -2363,9 +2350,8 @@ document.addEventListener('click',e=>{
   if(t){e.preventDefault();selectPlan(t.getAttribute('data-plan'))}
 });
 
-// ===== THEME / DENSITY =====
+// ===== THEME =====
 const THEME_KEY='reconcilia.theme';
-const DENSITY_KEY='reconcilia.density';
 
 function applyTheme(theme){
   const root=document.documentElement;
@@ -2381,19 +2367,9 @@ function applyTheme(theme){
   });
 }
 
-function applyDensity(density){
-  document.documentElement.setAttribute('data-density',density);
-  localStorage.setItem(DENSITY_KEY,density);
-  document.querySelectorAll('#density-picker .theme-btn').forEach(b=>{
-    b.classList.toggle('active',b.getAttribute('data-density')===density);
-  });
-}
-
 document.addEventListener('click',e=>{
   const t=e.target.closest('#theme-picker .theme-btn');
   if(t)applyTheme(t.getAttribute('data-theme'));
-  const d=e.target.closest('#density-picker .theme-btn');
-  if(d)applyDensity(d.getAttribute('data-density'));
 });
 
 if(window.matchMedia){
@@ -2405,8 +2381,6 @@ if(window.matchMedia){
 (function(){
   const t=localStorage.getItem(THEME_KEY)||'light';
   applyTheme(t);
-  const d=localStorage.getItem(DENSITY_KEY)||'comfortable';
-  applyDensity(d);
 })();
 
 function fillSettingsAccountInfo(){
@@ -3746,7 +3720,7 @@ function reconcile(){
   $('s-em').textContent=ec.length;
   $('s-ex').textContent=R.exact.length;
   $('s-fz').textContent=R.fuzzy.length;
-  $('s-un').textContent=R.ue.length;
+  $('s-un').textContent=R.ue.length+R.up.length;
   $('cn-ex').textContent='('+R.exact.length+')';
   $('cn-fz').textContent='('+R.fuzzy.length+')';
   $('cn-ue').textContent='('+R.ue.length+')';

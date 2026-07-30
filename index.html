@@ -3,718 +3,325 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mach.bank — Riconciliazione Bancaria Automatica</title>
-<!-- Marker che permette al CSS di nascondere gli elementi .reveal solo se
-     JS e' attivo. Senza JS il contenuto rimane visibile (no FOUC, accessibile). -->
-<script>document.documentElement.classList.add('js-anim');</script>
+<meta name="description" content="Mach.bank riconcilia automaticamente partitari ed estratti conto, classifica i movimenti e prepara report annotati. I PDF restano nel tuo browser.">
+<title>Mach.bank — Riconciliazione bancaria per studi e aziende</title>
+<script>document.documentElement.classList.add('js-anim','js-page-transition');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-
-/* ===== SCROLL REVEAL ANIMATIONS =====
-   Elementi marcati .reveal partono opacity:0 + traslati di 24px verso il
-   basso. Quando entrano in viewport (vedi IntersectionObserver in fondo)
-   vengono rilasciati con un easing morbido. Le grid taggate
-   .reveal-stagger applicano lo stesso effetto ai figli con un piccolo
-   ritardo progressivo (cascade visivo). */
-.js-anim .reveal{
-  opacity:0;transform:translateY(24px);
-  transition:opacity .8s cubic-bezier(.2,.8,.2,1),
-             transform .8s cubic-bezier(.2,.8,.2,1);
-  will-change:opacity,transform;
-}
-.js-anim .reveal.in-view{opacity:1;transform:none}
-.js-anim .reveal-stagger > *{
-  opacity:0;transform:translateY(18px);
-  transition:opacity .65s cubic-bezier(.2,.8,.2,1),
-             transform .65s cubic-bezier(.2,.8,.2,1);
-}
-.js-anim .reveal-stagger.in-view > *{opacity:1;transform:none}
-.js-anim .reveal-stagger.in-view > *:nth-child(1){transition-delay:.06s}
-.js-anim .reveal-stagger.in-view > *:nth-child(2){transition-delay:.14s}
-.js-anim .reveal-stagger.in-view > *:nth-child(3){transition-delay:.22s}
-.js-anim .reveal-stagger.in-view > *:nth-child(4){transition-delay:.30s}
-.js-anim .reveal-stagger.in-view > *:nth-child(5){transition-delay:.38s}
-.js-anim .reveal-stagger.in-view > *:nth-child(6){transition-delay:.46s}
-/* Hero: applica lo stesso pattern, ma con un mini delay scaglionato sui
-   figli direttamente cosi e' immediato all'apertura della pagina */
-.js-anim .hero.reveal-stagger > *:nth-child(1){transition-delay:.05s}
-.js-anim .hero.reveal-stagger > *:nth-child(2){transition-delay:.18s}
-.js-anim .hero.reveal-stagger > *:nth-child(3){transition-delay:.32s}
-.js-anim .hero.reveal-stagger > *:nth-child(4){transition-delay:.45s}
-
-/* prefers-reduced-motion: utenti che hanno chiesto al sistema di evitare
-   animazioni vedono tutto in posizione finale immediatamente. */
-@media (prefers-reduced-motion:reduce){
-  .js-anim .reveal,
-  .js-anim .reveal-stagger > *{
-    opacity:1;transform:none;transition:none;
-  }
-}
-:root{
-  --ink:#0a0a0a;--ink-2:#1a1a1a;
-  --paper:#fafaf7;--paper-2:#f1f0eb;
-  --line:#ebe9e2;--line-2:#dcd9cf;
-  --muted:#7a7770;--muted-2:#a8a59c;
-  --green:#0f7a3a;--green-soft:#e7f5ec;
-  --amber:#a35d00;--amber-soft:#fbf0dc;
-  --red:#a8201a;--red-soft:#fae9e7;
-  --r:10px;--r-sm:7px;
-}
-html,body{height:100%}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
-
-.nav-wrap{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
-.nav-inner{max-width:1400px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
-.brand{display:flex;align-items:center;gap:9px;font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:-0.5px;font-weight:400;line-height:1;color:var(--ink);text-decoration:none}
-.brand-mark{width:8px;height:8px;border-radius:50%;background:var(--ink);flex-shrink:0}
-.brand-text{display:inline}
-.brand em{font-style:italic}
-.brand-text{font-family:"Instrument Serif",serif;font-weight:400;letter-spacing:-.3px}
-.brand-text strong{color:var(--ink);font-style:normal;font-weight:400}
-.brand-tld{color:var(--muted);font-style:italic;font-weight:400;letter-spacing:-.2px}
-.nav-links{display:flex;gap:6px;align-items:center}
-.nav-link{color:var(--muted);font-size:13.5px;font-weight:500;text-decoration:none;padding:8px 12px;border-radius:7px;transition:color .15s,background .15s}
-.nav-link:hover{color:var(--ink);background:var(--paper-2)}
-
-.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none}
-.btn-primary{background:var(--ink);color:#fff}
-.btn-primary:hover{background:var(--ink-2)}
-.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
-.btn-outline:hover{background:var(--paper-2)}
-.btn-lg{padding:12px 22px;font-size:14px}
-
-.hero{max-width:1400px;margin:0 auto;padding:96px 32px 80px;text-align:center}
-.hero h1{font-family:'Instrument Serif',serif;font-size:72px;font-weight:400;line-height:1;letter-spacing:-2px;margin-bottom:24px}
-.hero h1 em{font-style:italic;color:var(--muted)}
-.hero p{color:var(--muted);font-size:17px;line-height:1.6;max-width:580px;margin:0 auto 36px}
-.hero-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.eyebrow{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);background:var(--paper-2);padding:6px 12px;border-radius:980px;margin-bottom:24px;border:1px solid var(--line)}
-
-.section{padding:96px 32px;max-width:1400px;margin:0 auto;border-top:1px solid var(--line)}
-.section-head{margin-bottom:48px;max-width:680px}
-.section-head.center{text-align:center;margin:0 auto 56px}
-.section-head h2{font-family:'Instrument Serif',serif;font-size:42px;font-weight:400;line-height:1.05;letter-spacing:-1.2px;margin-bottom:14px}
-.section-head h2 em{font-style:italic;color:var(--muted)}
-.section-head p{color:var(--muted);font-size:15px;max-width:560px}
-.section-head.center p{margin:0 auto}
-
-.features{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.feat{background:var(--paper);padding:28px 26px}
-.feat-icon{width:32px;height:32px;border-radius:8px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
-.feat-icon svg{width:16px;height:16px;color:var(--ink)}
-.feat h3{font-size:15px;font-weight:600;margin-bottom:6px;letter-spacing:-0.2px}
-.feat p{color:var(--muted);font-size:13.5px;line-height:1.55}
-
-/* ===== BANKS SECTION ===== */
-.banks-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:32px}
-.bank-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:28px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;transition:transform .2s,box-shadow .2s,border-color .2s;position:relative;overflow:hidden}
-.bank-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.07);border-color:var(--line-2)}
-.bank-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--bank-color)}
-.bank-logo{width:56px;height:56px;border-radius:14px;background:var(--bank-color);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-size:20px;font-weight:600;letter-spacing:-.5px;line-height:1;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,.08)}
-.bank-card-name{font-size:14px;font-weight:600;letter-spacing:-.2px;line-height:1.3}
-.bank-card-meta{font-size:11.5px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.4px}
-.banks-cta{margin-top:32px;padding:24px;background:var(--paper-2);border-radius:var(--r);text-align:center;font-size:14px;color:var(--muted);line-height:1.6}
-.banks-cta a{color:var(--ink);text-decoration:underline;font-weight:500}
-@media(max-width:1000px){.banks-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.banks-grid{grid-template-columns:1fr}}
-
-/* ===== HOW-IT-WORKS ===== */
-.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.step{background:var(--paper);padding:32px 28px}
-.step-num{font-family:'Instrument Serif',serif;font-size:36px;line-height:1;color:var(--muted-2);margin-bottom:18px;letter-spacing:-1px}
-.step h3{font-size:16px;font-weight:600;margin-bottom:8px;letter-spacing:-0.2px}
-.step p{color:var(--muted);font-size:13.5px;line-height:1.6}
-
-/* ===== SHOWCASE (mockup screens) ===== */
-.showcase{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:center;margin-bottom:96px}
-.showcase.flip{grid-template-columns:1.2fr 1fr}
-.showcase.flip .showcase-mock{order:-1}
-.showcase-text h3{font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;line-height:1.1;letter-spacing:-0.8px;margin-bottom:14px}
-.showcase-text h3 em{font-style:italic;color:var(--muted)}
-.showcase-text p{color:var(--muted);font-size:14.5px;line-height:1.6;margin-bottom:14px}
-.showcase-text ul{list-style:none;margin-top:18px}
-.showcase-text ul li{font-size:13.5px;color:var(--ink);padding:7px 0;display:flex;align-items:flex-start;gap:9px}
-.showcase-text ul li svg{width:14px;height:14px;color:var(--green);flex-shrink:0;margin-top:3px}
-
-.mock{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.06)}
-.mock-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--paper-2)}
-.mock-bar span{width:10px;height:10px;border-radius:50%;background:var(--line-2)}
-.mock-bar .mock-url{margin-left:8px;font-size:11px;color:var(--muted-2);font-family:'Inter',sans-serif}
-.mock-body{padding:30px 28px}
-.mock-h1{font-family:'Instrument Serif',serif;font-size:30px;line-height:1;letter-spacing:-0.5px;margin-bottom:6px}
-.mock-h1 em{font-style:italic;color:var(--muted)}
-.mock-sub{color:var(--muted);font-size:12px;margin-bottom:20px}
-
-.mock-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:18px}
-.mock-stat{background:var(--paper);padding:14px 12px;text-align:left}
-.mock-stat-num{font-family:'Instrument Serif',serif;font-size:30px;line-height:1;letter-spacing:-0.5px}
-.mock-stat-num.g{color:var(--green)}
-.mock-stat-num.a{color:var(--amber)}
-.mock-stat-num.r{color:var(--red)}
-.mock-stat-lbl{font-size:9.5px;color:var(--muted);margin-top:4px;letter-spacing:.2px}
-
-.mock-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:7px;margin-top:8px;font-size:11.5px}
-.mock-row .l{display:flex;align-items:center;gap:10px}
-.mock-row .badge{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:980px;text-transform:uppercase;letter-spacing:.4px}
-.mock-row .badge.g{background:var(--green-soft);color:var(--green)}
-.mock-row .badge.a{background:var(--amber-soft);color:var(--amber)}
-.mock-row .badge.r{background:var(--red-soft);color:var(--red)}
-
-/* Mock filter bar */
-.mock-filter{display:flex;align-items:center;gap:8px;margin:14px 0 10px;font-size:10.5px}
-.mock-filter .mf-pill{padding:5px 10px;background:var(--paper-2);border:1px solid var(--line);border-radius:980px;color:var(--muted);font-weight:500}
-.mock-filter .mf-input{flex:1;padding:5px 10px;border:1px solid var(--line);border-radius:6px;color:var(--muted-2)}
-.mock-filter .mf-btn{padding:5px 11px;background:var(--ink);color:#fff;border-radius:6px;font-weight:500;font-size:10px}
-.mock-filter .mf-btn.outline{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
-
-/* Mock match-table */
-.mock-section-head{display:flex;align-items:center;gap:8px;margin:14px 0 6px;font-size:11px;font-weight:600}
-.mock-section-head .dot{width:7px;height:7px;border-radius:50%}
-.mock-section-head .ct{color:var(--muted);font-weight:400;margin-left:4px;font-size:10.5px}
-
-.mock-tbl{width:100%;border-collapse:collapse;font-size:10.5px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.mock-tbl th{background:var(--paper-2);padding:8px 10px;text-align:left;font-weight:600;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
-.mock-tbl td{padding:8px 10px;border-top:1px solid var(--line);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
-.mock-tbl td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
-.mock-tbl td.num.pos{color:var(--green)}
-.mock-tbl td.num.neg{color:var(--red)}
-
-/* Mock annotated bank-statement */
-.mock-bank{font-family:'SF Mono',Menlo,monospace;font-size:9.5px;line-height:1.55;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:6px;padding:0;overflow:hidden}
-.mock-bank .row{display:flex;align-items:stretch;gap:0;border-bottom:1px solid #f3f1ec}
-.mock-bank .row:last-child{border-bottom:0}
-.mock-bank .bar{width:5px;flex-shrink:0}
-.mock-bank .bar.g{background:var(--green)}
-.mock-bank .bar.a{background:var(--amber)}
-.mock-bank .bar.r{background:var(--red)}
-.mock-bank .row.g{background:rgba(15,122,58,.06)}
-.mock-bank .row.a{background:rgba(163,93,0,.08)}
-.mock-bank .row.r{background:rgba(168,32,26,.06)}
-.mock-bank .cells{flex:1;display:flex;align-items:center;gap:10px;padding:5px 8px 5px 10px;min-width:0}
-.mock-bank .d{color:var(--muted);width:62px;flex-shrink:0}
-.mock-bank .desc{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#333}
-.mock-bank .priv{display:inline-block;background:#1a1a1a;border-radius:2px;height:9px;vertical-align:middle}
-.mock-bank .amt{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500;flex-shrink:0;width:64px;text-align:right}
-
-.mock-upload{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-.mock-up-card{background:var(--paper-2);border:1px dashed var(--line-2);border-radius:8px;padding:24px 18px;text-align:center}
-.mock-up-card strong{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
-.mock-up-card span{font-size:11px;color:var(--muted-2)}
-
-.mock-pdf{background:#fff;border:1px solid var(--line);border-radius:6px;padding:16px;font-family:'SF Mono',Menlo,monospace;font-size:10.5px;line-height:1.7;color:var(--ink);position:relative;overflow:hidden}
-.mock-pdf .hl{padding:1px 0;display:block;position:relative}
-.mock-pdf .hl::before{content:'';position:absolute;left:-16px;top:0;bottom:0;width:5px}
-.mock-pdf .hl.g{background:rgba(15,122,58,.08)}
-.mock-pdf .hl.g::before{background:var(--green)}
-.mock-pdf .hl.a{background:rgba(163,93,0,.08)}
-.mock-pdf .hl.a::before{background:var(--amber)}
-.mock-pdf .hl.r{background:rgba(168,32,26,.08)}
-.mock-pdf .hl.r::before{background:var(--red)}
-
-/* ===== STATS BIG ===== */
-.big-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:32px}
-.big-stat{padding:28px 22px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
-.big-stat-num{font-family:'Instrument Serif',serif;font-size:54px;line-height:1;letter-spacing:-1.5px;margin-bottom:6px}
-.big-stat-num em{font-style:italic;color:var(--muted)}
-.big-stat-lbl{color:var(--muted);font-size:13px;line-height:1.5}
-
-/* ===== TESTIMONIAL ===== */
-
-/* ===== CTA ===== */
-.final-cta{margin:32px 0 0;padding:64px 32px;background:var(--ink);color:#fff;border-radius:var(--r);text-align:center}
-.final-cta h2{font-family:'Instrument Serif',serif;font-size:44px;font-weight:400;line-height:1.05;letter-spacing:-1.2px;margin-bottom:14px}
-.final-cta h2 em{font-style:italic;color:rgba(255,255,255,.6)}
-.final-cta p{color:rgba(255,255,255,.7);font-size:15px;max-width:480px;margin:0 auto 28px}
-.final-cta .btn{background:#fff;color:var(--ink)}
-.final-cta .btn:hover{background:rgba(255,255,255,.92)}
-
-/* ===== FOOTER ===== */
-.footer{border-top:1px solid var(--line);padding:48px 32px;text-align:center;color:var(--muted);font-size:13px}
-.footer a{color:var(--ink);text-decoration:none;font-weight:500}
-.footer a:hover{text-decoration:underline}
-.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:14px;font-size:13px}
-.footer-links a{color:var(--muted);font-weight:500;text-decoration:none}
-.footer-links a:hover{color:var(--ink)}
-.footer-made{margin-top:8px;font-size:12px}
-
-@media (max-width:768px){
-  .hero{padding:64px 20px 56px}
-  .hero h1{font-size:42px;letter-spacing:-1.2px;line-height:1.05}
-  .hero .lead{font-size:16px}
-  .section{padding:56px 20px}
-  .section-head h2{font-size:28px}
-  .section-head p{font-size:14px}
-  /* Le grid features/steps usano un trucco gap:1px+sfondo per disegnare
-     i divisori. Su mobile (1 colonna) quel gap diventa una banda orizzontale
-     brutta — riportiamo a card separate con background trasparente sul wrap */
-  .features,.steps-grid,.big-stats{
-    grid-template-columns:1fr;gap:14px;
-    background:transparent;border:0;border-radius:0;
-  }
-  .feature-card,.step-card,.big-stat{
-    border:1px solid var(--line);border-radius:var(--r);
-  }
-  /* Showcase mockups: HTML fake-screenshots con 5-col grid e tabelle —
-     non sopravvivono mobile. Li nascondo, lascio solo il testo+checklist
-     che e' il vero messaggio. Stack vertical, padding compatto. */
-  .showcase,.showcase.flip{grid-template-columns:1fr;gap:0;margin-bottom:56px}
-  .showcase-mock{display:none}
-  .showcase-text{max-width:100%}
-  .showcase-text h3{font-size:26px;line-height:1.1;margin-bottom:12px}
-  .showcase-text p{font-size:14.5px;line-height:1.65;margin-bottom:12px}
-  .showcase-text ul{margin-top:14px}
-  .showcase-text ul li{font-size:14px;padding:6px 0}
-  /* Aggiunge un piccolo accent visivo prima del titolo: una linea verticale
-     nera sottile, cosi' la sezione non e' un muro di testo */
-  .showcase-text h3{padding-left:14px;border-left:2px solid var(--ink)}
-  /* (rimossa la rule .nav-links a:not(.btn){display:none}: ora il parent
-     .nav-links e' display:none chiuso, quindi i figli non leakano) */
-  .final-cta h2{font-size:28px}
-  .final-cta{padding:48px 22px}
-  .footer{padding:36px 20px}
-  .footer-cols{grid-template-columns:1fr 1fr;gap:24px}
-  .feature-card{padding:22px}
-  .step-card{padding:22px}
-  .stat-num{font-size:36px}
-  .big-stats .big-stat{padding:24px 20px;text-align:left}
-  .big-stat-num{font-size:48px}
-  .big-stat-lbl{font-size:13.5px}
-
-}
-@media (max-width:480px){
-  .hero h1{font-size:34px}
-  .hero .lead{font-size:15px}
-  .section{padding:48px 18px}
-  .section-head h2{font-size:24px}
-  .footer-cols{grid-template-columns:1fr}
-  .showcase-text h3{font-size:22px}
-  .big-stat-num{font-size:42px}
-}
-
-/* Ultra-wide screens: use more horizontal space */
-@media(min-width:1900px){
-  .nav-inner,.hero,.section,.page-head{max-width:1600px}
-}
-
-/* Quick-link "Prezzi" sempre visibile nella navbar mobile (UX: pricing
-   e' high-value, non vogliamo nasconderlo dentro l'hamburger). Su desktop
-   nascosto perche' c'e' gia' nella .nav-links completa. */
-
-  to{transform:translateY(0);opacity:1}
-}
-.hero-mobile-cta{display:none}
-@media(max-width:768px){
-  .hero-actions a:not(.hero-mobile-cta){display:none}
-  .hero-mobile-cta{display:inline-flex !important}
-}
-
-/* ===== DROPDOWN MENU (shared across all public pages) ===== */
-.dropdown{position:relative;margin-left:auto}
-.dropdown-trigger{
-  width:42px;height:42px;
-  display:inline-flex;align-items:center;justify-content:center;
-  background:var(--paper);border:1px solid var(--line);border-radius:10px;
-  cursor:pointer;color:var(--ink);padding:0;
-  font-family:inherit;
-  transition:background .15s,border-color .15s,transform .12s;
-}
-.dropdown-trigger:hover{background:var(--paper-2);border-color:var(--line-2)}
-.dropdown-trigger:active{transform:scale(.96)}
-.dropdown-trigger svg{display:block}
-.dropdown-panel{
-  position:absolute;top:calc(100% + 8px);right:0;
-  min-width:240px;
-  background:#fff;border:1px solid var(--line);border-radius:12px;
-  box-shadow:0 16px 48px rgba(0,0,0,.10),0 4px 12px rgba(0,0,0,.04);
-  padding:6px;
-  display:flex !important;flex-direction:column;align-items:stretch;gap:0;
-  opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top right;
-  pointer-events:none;
-  transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1);
-  z-index:200;
-}
-.dropdown.open .dropdown-panel{opacity:1;transform:none;pointer-events:auto}
-.dropdown-panel a{
-  font-size:14px;font-weight:500;color:var(--ink);text-decoration:none;
-  padding:11px 14px;border-radius:8px;
-  display:flex;align-items:center;
-  letter-spacing:-0.005em;
-  transition:background .12s;
-  border:0!important;
-}
-.dropdown-panel a:hover,
-.dropdown-panel a:focus{background:var(--paper-2)}
-.dropdown-panel a.btn{
-  justify-content:center;font-weight:500;margin-top:4px;
-}
-.dropdown-panel a.btn-outline{
-  border:1px solid var(--line-2)!important;background:transparent;
-}
-.dropdown-panel a.btn-outline:hover{background:var(--paper-2)}
-.dropdown-panel a.btn-primary{
-  background:var(--ink);color:#fff;
-}
-.dropdown-panel a.btn-primary:hover{background:var(--ink-2)}
-
-/* Desktop: il dropdown diventa una nav inline orizzontale, non un menu
-   cliccabile. Hamburger nascosto, panel "aperto" di default e in flusso. */
-@media(min-width:769px){
-  .dropdown-trigger{display:none}
-  .dropdown-panel{
-    position:static;
-    min-width:0;
-    background:transparent;
-    border:0;
-    box-shadow:none;
-    padding:0;
-    flex-direction:row;
-    align-items:center;
-    gap:6px;
-    opacity:1;
-    transform:none;
-    pointer-events:auto;
-    z-index:auto;
-    transition:none;
-  }
-  .dropdown-panel a:not(.btn){
-    padding:8px 12px;
-    font-size:13.5px;
-    font-weight:500;
-    color:var(--muted);
-    border-radius:7px;
-  }
-  .dropdown-panel a:not(.btn):hover{color:var(--ink);background:var(--paper-2)}
-  .dropdown-panel a.btn{
-    margin-top:0;
-    padding:9px 18px;
-    font-size:13px;
-    justify-content:center;
-  }
-  .dropdown-panel a.btn-outline{
-    color:var(--ink);
-    border:1px solid var(--line-2)!important;
-    background:transparent;
-  }
-  .dropdown-panel a.btn-outline:hover{background:var(--paper-2)}
-  .dropdown-panel a.btn-primary{
-    background:var(--ink);color:#fff;
-  }
-  .dropdown-panel a.btn-primary:hover{background:var(--ink-2)}
-}
-
-</style>
+<link rel="preload" as="image" href="assets/illustrations/mach-reconciliation-flow.jpg">
+<link rel="stylesheet" href="page-transition.css">
+<link rel="stylesheet" href="landing.css">
 </head>
 <body>
 
-<div class="nav-wrap">
+<header class="nav-wrap">
   <div class="nav-inner">
-    <a href="index.html" class="brand"><span class="brand-mark"></span><span class="brand-text"><strong>Mach</strong><span class="brand-tld">.bank</span></span></a>
-      <div class="dropdown">
-      <button type="button" class="dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label="Menu">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <a href="index.html" class="brand" aria-label="Mach.bank, home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Mach<span class="brand-tld">.bank</span></span>
+    </a>
+
+    <div class="dropdown">
+      <button type="button" class="dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label="Apri il menu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
       </button>
-      <nav class="dropdown-panel nav-links" role="menu">
-      <a href="#features" class="nav-link">Funzionalità</a>
-      <a href="pricing.html" class="nav-link">Prezzi</a>
-      <a href="faq.html" class="nav-link">FAQ</a>
-      <a href="login.html" class="btn btn-outline">Accedi</a>
-      <a href="login.html?mode=signup" class="btn btn-primary">Inizia gratis</a>
-    </nav>
+      <nav class="dropdown-panel nav-links" aria-label="Navigazione principale">
+        <a href="#funzionalita" class="nav-link">Funzionalità</a>
+        <a href="pricing.html" class="nav-link">Prezzi</a>
+        <a href="faq.html" class="nav-link">FAQ</a>
+        <a href="login.html" class="btn btn-outline">Accedi</a>
+        <a href="login.html?mode=signup" class="btn btn-primary">Inizia gratis</a>
+      </nav>
     </div>
   </div>
-</div>
+</header>
 
-<!-- HERO -->
-<section class="hero reveal-stagger">
-  <span class="eyebrow">Riconciliazione bancaria automatica</span>
-  <h1>Riconcilia partitari ed<br>estratti conto in <em>un click</em>.</h1>
-  <p>Reconcilia confronta automaticamente i movimenti del partitario con quelli dell'estratto conto. Carica i PDF, ottieni i match, scarica i report annotati con i match già evidenziati. Tutto in locale, niente upload sui nostri server.</p>
-  <div class="hero-actions">
-    <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Crea un account gratis</a>
-    <a href="pricing.html" class="btn btn-outline btn-lg">Vedi i prezzi</a>
-    <a href="login.html" class="btn btn-primary btn-lg hero-mobile-cta">Accedi / Registrati</a>
-  </div>
-</section>
+<main id="contenuto">
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-copy reveal-stagger">
+        <span class="eyebrow">Per commercialisti, studi e amministrazioni</span>
+        <h1>Contabilità e banca, finalmente <em>dalla stessa parte.</em></h1>
+        <p class="hero-lead">Mach.bank confronta partitari ed estratti conto, trova le corrispondenze e prepara report annotati pronti per il dossier. Tu controlli solo ciò che merita attenzione.</p>
+        <div class="hero-actions">
+          <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Inizia gratis <span aria-hidden="true">→</span></a>
+          <a href="#come-funziona" class="btn btn-outline btn-lg">Come funziona</a>
+        </div>
+        <p class="hero-note">Piano Free con 2 analisi al mese · nessuna carta richiesta</p>
+      </div>
 
-<!-- FEATURES -->
-<section class="section" id="features">
-  <div class="section-head reveal">
-    <h2>Tutto quello che ti serve per <em>chiudere</em> il mese.</h2>
-    <p>Parser nativi per cinque banche italiane, matching intelligente per data e importo, export in PDF annotati. Senza fogli Excel.</p>
-  </div>
-  <div class="features reveal-stagger">
-    <div class="feat">
-      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <h3>Parser nativi PDF</h3>
-      <p>Cinque banche italiane supportate, anche i PDF criptati di Intesa Sanpaolo. Niente OCR, niente errori di lettura.</p>
+      <figure class="editorial-visual reveal image-reveal">
+        <div class="editorial-frame">
+          <img
+            src="assets/illustrations/mach-reconciliation-flow.jpg"
+            width="1600"
+            height="900"
+            alt="Partitario ed estratto conto collegati da un motore centrale che abbina i movimenti"
+            fetchpriority="high"
+          >
+        </div>
+        <figcaption>
+          <span><i aria-hidden="true"></i>Un unico controllo</span>
+          <span>Partitario · banca · report</span>
+        </figcaption>
+      </figure>
     </div>
-    <div class="feat">
-      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <h3>Match automatico</h3>
-      <p>Confronto per importo e data con tolleranza configurabile. Match esatti, approssimativi e voci non trovate, separati e ordinati.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-      <h3>Report con match evidenziati</h3>
-      <p>Scarica gli estratti conto e i partitari originali con un evidenziatore colorato su ogni riga: verde, arancione, rosso. Pronti da archiviare.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-      <h3>Privacy by design</h3>
-      <p>Tutto il parsing avviene nel tuo browser. I PDF non vengono mai caricati su server esterni. Solo le credenziali sono salvate.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-      <h3>Veloce davvero</h3>
-      <p>Un'analisi completa in pochi secondi. PDF annotati con annotazione vettoriale, leggeri e con testo selezionabile.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div>
-      <h3>Multi-file in batch</h3>
-      <p>Carica tutti i partitari e gli estratti conto del trimestre insieme. Un nome di analisi, un click, ZIP scaricato.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- HOW IT WORKS -->
-<section class="section" id="how">
-  <div class="section-head center reveal">
-    <h2>Come <em>funziona</em>.</h2>
-    <p>Tre passaggi. Dal PDF al report con i match evidenziati, in meno di un minuto.</p>
-  </div>
-  <div class="steps-grid reveal-stagger">
-    <div class="step">
-      <div class="step-num">1</div>
-      <h3>Carica i PDF</h3>
-      <p>Trascina partitari (dalla contabilità) ed estratti conto (dalla banca) nelle due aree. Più file insieme — anche un trimestre intero. La banca emittente viene riconosciuta in automatico.</p>
+  <section class="proof" aria-label="Vantaggi principali">
+    <div class="shell proof-grid reveal-stagger">
+      <div class="proof-item"><strong>5</strong><span>formati bancari italiani già supportati</span></div>
+      <div class="proof-item"><strong>~30 s</strong><span>per elaborare un trimestre fino a 1.000 movimenti</span></div>
+      <div class="proof-item"><strong>0 PDF</strong><span>inviati ai nostri server durante l'analisi</span></div>
+      <div class="proof-item"><strong>3 esiti</strong><span>match esatto, approssimativo o da verificare</span></div>
     </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <h3>Avvia l'analisi</h3>
-      <p>Reconcilia estrae i movimenti, confronta importi e date con tolleranza intelligente, e classifica ogni riga come match esatto, approssimativo, o non trovato. Niente regole da configurare.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <h3>Scarica i report</h3>
-      <p>Visualizza i risultati nella tabella, oppure scarica lo ZIP con i tuoi PDF originali — partitari ed estratti — annotati con i match già evidenziati a colori. Pronti per il dossier o il cliente.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- SHOWCASE: UPLOAD -->
-<section class="section">
-  <div class="showcase reveal-stagger">
-    <div class="showcase-text">
-      <h3>Carica i file. <em>Tutto qui</em>.</h3>
-      <p>Trascina i tuoi PDF nelle aree dedicate. Reconcilia rileva automaticamente la banca emittente per ogni estratto conto e prepara l'analisi.</p>
-      <p>Nessuna configurazione di colonne, nessun mapping da impostare. Funziona out-of-the-box con i formati standard delle cinque banche supportate, inclusi i PDF criptati di Intesa Sanpaolo e i layout multi-pagina di Monte dei Paschi.</p>
-      <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Drag &amp; drop multi-file</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Rilevamento automatico della banca</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Nessuna configurazione richiesta</li>
-      </ul>
+  <section class="section" id="funzionalita">
+    <div class="shell">
+      <div class="section-head reveal">
+        <span class="eyebrow">Meno lavoro ripetitivo</span>
+        <h2>La riconciliazione diventa un <em>controllo</em>, non una caccia alla riga.</h2>
+        <p>Dall'estrazione dei movimenti al report finale, ogni passaggio è costruito per rendere chiaro cosa torna e cosa richiede una verifica.</p>
+      </div>
+
+      <div class="features reveal-stagger">
+        <article class="feature">
+          <span class="feature-index">01</span>
+          <h3>Parser nativi per i PDF</h3>
+          <p>Legge direttamente i formati delle banche supportate, inclusi documenti multipagina e PDF protetti di Intesa Sanpaolo.</p>
+        </article>
+        <article class="feature">
+          <span class="feature-index">02</span>
+          <h3>Matching intelligente</h3>
+          <p>Confronta importi e date con una tolleranza controllata, distinguendo subito corrispondenze esatte e approssimative.</p>
+        </article>
+        <article class="feature">
+          <span class="feature-index">03</span>
+          <h3>Eccezioni in evidenza</h3>
+          <p>Le voci non trovate non si perdono in una tabella: restano separate, ricercabili e pronte per il controllo.</p>
+        </article>
+        <article class="feature">
+          <span class="feature-index">04</span>
+          <h3>Report annotati</h3>
+          <p>I documenti originali tornano con evidenziazioni verdi, arancioni e rosse, leggibili anche fuori dall'applicazione.</p>
+        </article>
+        <article class="feature">
+          <span class="feature-index">05</span>
+          <h3>Elaborazione locale</h3>
+          <p>Il parsing avviene nel browser: i documenti contabili restano sul dispositivo durante tutta la riconciliazione.</p>
+        </article>
+        <article class="feature">
+          <span class="feature-index">06</span>
+          <h3>Analisi multi-file</h3>
+          <p>Partitari ed estratti conto di un intero trimestre possono essere elaborati insieme e scaricati in un unico ZIP.</p>
+        </article>
+      </div>
     </div>
-    <div class="showcase-mock">
-      <div class="mock">
-        <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">reconcilia.app/app · Nuova analisi</div></div>
-        <div class="mock-body">
-          <div class="mock-h1">Nuova <em>analisi</em>.</div>
-          <div class="mock-sub">Carica i file. La banca viene rilevata automaticamente.</div>
-          <div class="mock-upload">
-            <div class="mock-up-card"><strong>Partitari</strong><span>Trascina o clicca per selezionare</span></div>
-            <div class="mock-up-card"><strong>Estratti Conto</strong><span>Trascina — banca rilevata in automatico</span></div>
+  </section>
+
+  <section class="section section-dark" id="come-funziona">
+    <div class="shell">
+      <div class="section-head reveal">
+        <span class="eyebrow">Dal documento al dossier</span>
+        <h2>Tre passaggi, senza <em>impostazioni da indovinare.</em></h2>
+        <p>Il flusso segue il modo in cui lavora già lo studio: documenti in ingresso, controllo delle eccezioni, report archiviabile.</p>
+      </div>
+
+      <div class="steps reveal-stagger">
+        <article class="step">
+          <span class="step-number">01</span>
+          <h3>Carica i documenti</h3>
+          <p>Trascina partitari ed estratti conto nelle due aree dedicate. La banca viene riconosciuta automaticamente.</p>
+        </article>
+        <article class="step">
+          <span class="step-number">02</span>
+          <h3>Controlla gli esiti</h3>
+          <p>Match esatti, approssimativi e movimenti non trovati sono separati e ordinati per una verifica immediata.</p>
+        </article>
+        <article class="step">
+          <span class="step-number">03</span>
+          <h3>Archivia il risultato</h3>
+          <p>Scarica i PDF annotati e il riepilogo in un unico pacchetto, pronto per il dossier o per il cliente.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="risultati-title">
+    <div class="shell product-grid">
+      <div class="product-copy reveal">
+        <span class="eyebrow">Dentro Mach.bank</span>
+        <h2 id="risultati-title">Il quadro completo, prima del dettaglio.</h2>
+        <p>La dashboard mostra subito il volume elaborato e distribuisce i movimenti nei tre livelli di attenzione. Da lì puoi filtrare, cercare e aprire ogni coppia.</p>
+        <ul class="check-list">
+          <li>Statistiche aggregate immediate</li>
+          <li>Ricerca per descrizione e importo</li>
+          <li>Dettaglio affiancato banca–partitario</li>
+        </ul>
+        <div style="margin-top:25px">
+          <a href="login.html?mode=signup" class="btn btn-primary">Prova con il piano Free <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <div class="product-preview reveal" aria-label="Anteprima della schermata risultati">
+        <div class="preview-bar"><i></i><i></i><i></i><span>mach.bank · risultati della riconciliazione</span></div>
+        <div class="preview-body">
+          <div class="preview-heading"><h3>Riconciliazione Q2</h3><span>Analisi completata</span></div>
+          <div class="preview-stats">
+            <div class="preview-stat"><b>806</b><span>Partitario</span></div>
+            <div class="preview-stat"><b>801</b><span>Estratto conto</span></div>
+            <div class="preview-stat is-green"><b>798</b><span>Esatti</span></div>
+            <div class="preview-stat is-amber"><b>3</b><span>Approssimativi</span></div>
+            <div class="preview-stat is-red"><b>0</b><span>Da verificare</span></div>
           </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px">
-            <span style="font-size:11px;color:var(--muted-2);align-self:center">Cancella tutto</span>
-            <span style="background:var(--ink);color:#fff;font-size:11px;font-weight:500;padding:8px 16px;border-radius:7px">Avvia analisi</span>
+          <div class="preview-tools">
+            <span class="preview-pill">Tutti gli esiti</span>
+            <span class="preview-pill">Cerca movimento</span>
+            <span class="preview-pill">Scarica report</span>
+          </div>
+          <div class="preview-table-wrap">
+            <table class="preview-table">
+              <thead>
+                <tr><th>Data banca</th><th>Descrizione</th><th>Importo</th><th>Data partitario</th><th>Contropartita</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>13/04/26</td><td>Incasso tramite P.O.S.</td><td class="amount positive">+253,35</td><td>13/04/26</td><td>Accrediti POS</td></tr>
+                <tr><td>14/04/26</td><td>Bonifico ordinante</td><td class="amount positive">+1.840,00</td><td>14/04/26</td><td>Incasso cliente</td></tr>
+                <tr><td>15/04/26</td><td>Oneri e commissioni</td><td class="amount">−39,00</td><td>15/04/26</td><td>Oneri bancari</td></tr>
+                <tr><td>16/04/26</td><td>Pagamento fornitore</td><td class="amount">−628,40</td><td>16/04/26</td><td>Debiti v/fornitori</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- SHOWCASE: RESULTS -->
-<section class="section" style="border-top:0;padding-top:0">
-  <div class="showcase flip reveal-stagger">
-    <div class="showcase-mock">
-      <div class="mock">
-        <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">reconcilia.app/app · Risultati</div></div>
-        <div class="mock-body">
-          <div class="mock-stats">
-            <div class="mock-stat"><div class="mock-stat-num">806</div><div class="mock-stat-lbl">Mov. Partitario</div></div>
-            <div class="mock-stat"><div class="mock-stat-num">801</div><div class="mock-stat-lbl">Mov. E/C</div></div>
-            <div class="mock-stat"><div class="mock-stat-num g">798</div><div class="mock-stat-lbl">Match Esatti</div></div>
-            <div class="mock-stat"><div class="mock-stat-num a">3</div><div class="mock-stat-lbl">Approssimativi</div></div>
-            <div class="mock-stat"><div class="mock-stat-num r">0</div><div class="mock-stat-lbl">Non Trovati</div></div>
-          </div>
-          <div class="mock-filter">
-            <div class="mf-pill">Tutti i risultati ▾</div>
-            <div class="mf-input">Cerca descrizione…</div>
-            <div class="mf-btn">Scarica PDF Annotati</div>
-            <div class="mf-btn outline">Nuova analisi</div>
-          </div>
-          <div class="mock-section-head">
-            <span class="dot" style="background:var(--green)"></span>Match Esatti<span class="ct">(798)</span>
-          </div>
-          <table class="mock-tbl">
-            <thead>
-              <tr><th>Data E/C</th><th>Descrizione E/C</th><th style="text-align:right">Importo</th><th>Data Part.</th><th>Descrizione Part.</th><th style="text-align:right">Importo</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>13/01/25</td><td></td><td class="num neg">-39,00</td><td>13/01/25</td><td>67 ONERI BANCARI</td><td class="num neg">39,00</td></tr>
-              <tr><td>13/01/25</td><td>INCASSO TRAMITE P.O.S.</td><td class="num pos">+253,35</td><td>13/01/25</td><td>ACCR. POS/CC</td><td class="num pos">253,35</td></tr>
-              <tr><td>13/01/25</td><td></td><td class="num pos">+326,30</td><td>13/01/25</td><td>ACCR. POS/CC</td><td class="num pos">326,30</td></tr>
-              <tr><td>13/01/25</td><td>INCASSO TRAMITE P.O.S.</td><td class="num pos">+83,30</td><td>13/01/25</td><td>ACCR. POS/CC</td><td class="num pos">83,30</td></tr>
-            </tbody>
-          </table>
+  <section class="story-section" aria-labelledby="privacy-title">
+    <div class="shell story">
+      <figure class="story-visual editorial-visual is-light reveal image-reveal">
+        <div class="editorial-frame">
+          <img
+            src="assets/illustrations/mach-local-privacy.jpg"
+            width="1600"
+            height="900"
+            alt="Documenti bancari elaborati all'interno di un computer protetto e trasformati in un report"
+            loading="lazy"
+            decoding="async"
+          >
+        </div>
+      </figure>
+
+      <div class="story-copy reveal">
+        <span class="eyebrow">Privacy operativa</span>
+        <h2 id="privacy-title">I documenti restano <em>dove lavori tu.</em></h2>
+        <p>Partitari ed estratti conto vengono letti nel browser. L'elaborazione non richiede l'invio dei PDF a un servizio esterno.</p>
+        <div class="story-points">
+          <div class="story-point"><b>01</b><span>Parsing e confronto eseguiti sul dispositivo.</span></div>
+          <div class="story-point"><b>02</b><span>Nessun archivio remoto dei documenti contabili.</span></div>
+          <div class="story-point"><b>03</b><span>Storico disattivabile in base alle esigenze dello studio.</span></div>
         </div>
       </div>
     </div>
-    <div class="showcase-text">
-      <h3>Risultati <em>chiari</em>, subito.</h3>
-      <p>La dashboard ti mostra in un colpo d'occhio quanti movimenti ha il partitario, quanti l'estratto conto, e come sono stati classificati: match esatti in verde, approssimativi in arancione, non trovati in rosso.</p>
-      <p>Filtra per tipo di match, cerca nella descrizione, ordina per data o importo. Tutto in tempo reale, senza ricaricare nulla.</p>
-      <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Statistiche aggregate immediate</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tabelle filtrabili e ricercabili</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Dettaglio per ogni movimento</li>
-      </ul>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- SHOWCASE: ANNOTATED PDF -->
-<section class="section" style="border-top:0;padding-top:0">
-  <div class="showcase reveal-stagger">
-    <div class="showcase-text">
-      <h3>Scarica i report con i <em>match segnati</em>.</h3>
-      <p>Il vero superpotere: con un click scarichi uno ZIP con i tuoi PDF originali (sia partitari che estratti conto), ognuno con un evidenziatore colorato su ogni riga di movimento.</p>
-      <p><strong>Verde</strong> per i match esatti, <strong>arancione</strong> per gli approssimativi, <strong>rosso</strong> per le voci che non hanno trovato corrispondenza. Il testo resta selezionabile, le pagine restano leggere.</p>
-      <p>Allegali al dossier, mandali al cliente, archiviali con il resto della documentazione del trimestre. La riconciliazione diventa visibile, non più un foglio Excel da reinterpretare.</p>
-      <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PDF originali, non immagini</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Annotazione vettoriale, leggera</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>ZIP unico, partitari + estratti conto</li>
-      </ul>
-    </div>
-    <div class="showcase-mock">
-      <div class="mock">
-        <div class="mock-bar"><span></span><span></span><span></span><div class="mock-url">EC_Q1_2025_annotato.pdf</div></div>
-        <div class="mock-body" style="padding:16px">
-          <div class="mock-bank">
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">06/03 06/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">106,20</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">06/03 06/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:120px"></span></span><span class="amt">393,60</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">07/03 07/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">116,80</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">07/03 07/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">332,70</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">07/03 07/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:90px"></span></span><span class="amt">215,70</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 26/02/25</span><span class="desc">ASSEGNO N. 963022144</span><span class="amt">1.525,85</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">65,90</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">508,90</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">82,90</span></div></div>
-            <div class="row a"><div class="bar a"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:110px"></span></span><span class="amt">65,58</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">10/03 10/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">63,90</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">11/03 04/03/25</span><span class="desc">COMMISSIONI PER LAVORAZIONE EFFETTI <span class="priv" style="width:60px"></span></span><span class="amt">13,00</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">11/03 11/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">373,75</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">11/03 11/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">84,50</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">12/03 12/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">135,71</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">12/03 12/03/25</span><span class="desc">INCASSO TRAMITE P.O.S.</span><span class="amt">24,00</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">12/03 12/03/25</span><span class="desc">BONIFICO O/C <span class="priv" style="width:80px"></span></span><span class="amt">66,50</span></div></div>
-            <div class="row g"><div class="bar g"></div><div class="cells"><span class="d">13/03 13/03/25</span><span class="desc">GIROCONTO EFFETTI S.B.F. A MATURAZIONE</span><span class="amt">1.195,45</span></div></div>
-          </div>
+  <section class="story-section" aria-labelledby="report-title">
+    <div class="shell story is-reverse">
+      <div class="story-copy reveal">
+        <span class="eyebrow">Un risultato che si vede</span>
+        <h2 id="report-title">Il controllo diventa un <em>documento pronto.</em></h2>
+        <p>Ogni movimento viene riportato sui PDF originali con un codice colore coerente. Il risultato è leggibile dal collega, dal cliente e in fase di revisione.</p>
+        <div class="story-points">
+          <div class="story-point"><b>V</b><span>Verde per le corrispondenze esatte.</span></div>
+          <div class="story-point"><b>A</b><span>Ambra per gli abbinamenti da confermare.</span></div>
+          <div class="story-point"><b>R</b><span>Rosso per le voci senza corrispondenza.</span></div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- BIG STATS -->
-<section class="section" style="border-top:0;padding-top:0">
-  <div class="section-head center reveal">
-    <h2>Numeri che <em>parlano</em>.</h2>
-    <p>Tempo risparmiato e affidabilità verificate sul campo da commercialisti e controller italiani.</p>
-  </div>
-  <div class="big-stats reveal-stagger">
-    <div class="big-stat">
-      <div class="big-stat-num">99,6<em>%</em></div>
-      <div class="big-stat-lbl">match automatici corretti, verificate su migliaia di transazioni.</div>
+      <figure class="story-visual editorial-visual reveal image-reveal">
+        <div class="editorial-frame">
+          <img
+            src="assets/illustrations/mach-annotated-report.jpg"
+            width="1600"
+            height="900"
+            alt="Un estratto conto viene trasformato in un report annotato e archiviato in un dossier"
+            loading="lazy"
+            decoding="async"
+          >
+        </div>
+      </figure>
     </div>
-    <div class="big-stat">
-      <div class="big-stat-num">~30<em>s</em></div>
-      <div class="big-stat-lbl">il tempo medio per processare un trimestre completo: 4 estratti conto e 1 partitario, fino a 1.000 movimenti.</div>
-    </div>
-    <div class="big-stat">
-      <div class="big-stat-num">5<em> banche</em></div>
-      <div class="big-stat-lbl">parser nativi per Intesa Sanpaolo, Banco BPM, Monte dei Paschi, Volksbank, Banca della Marca. Altre in arrivo.</div>
-    </div>
-  </div>
+  </section>
 
-</section>
+  <section class="section" aria-labelledby="numeri-title">
+    <div class="shell">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Il tempo torna al controllo</span>
+        <h2 id="numeri-title">Meno passaggi manuali, <em>più chiarezza.</em></h2>
+        <p>Mach.bank concentra in un solo flusso l'estrazione, il confronto e la preparazione dei documenti finali.</p>
+      </div>
+      <div class="numbers reveal-stagger">
+        <div class="number-card"><strong>~30<em>s</em></strong><span>per un trimestre fino a circa 1.000 movimenti, sul dispositivo utilizzato.</span></div>
+        <div class="number-card"><strong>3<em> livelli</em></strong><span>per distinguere subito ciò che torna da ciò che richiede attenzione.</span></div>
+        <div class="number-card"><strong>1<em> ZIP</em></strong><span>con partitari ed estratti conto annotati, pronti per il dossier.</span></div>
+      </div>
+    </div>
+  </section>
 
-<!-- BANKS -->
-<section class="section" id="banks" style="border-top:0;padding-top:0">
-  <div class="section-head center reveal">
-    <h2>Cinque banche, <em>più in arrivo</em>.</h2>
-    <p>Parser nativi per i formati PDF di alcuni dei principali istituti italiani. Aggiungerne una nuova richiede solo un campione di estratto conto.</p>
-  </div>
-  <div class="banks-grid reveal-stagger">
-    <div class="bank-card" style="--bank-color:#10613A">
-      <div class="bank-logo">ISP</div>
-      <div class="bank-card-name">Intesa Sanpaolo</div>
-      <div class="bank-card-meta">Italia · National</div>
+  <section class="section" id="banche" aria-labelledby="banche-title">
+    <div class="shell">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Compatibilità nativa</span>
+        <h2 id="banche-title">Cinque banche, <em>altre in arrivo.</em></h2>
+        <p>I parser seguono i formati PDF specifici degli istituti supportati, senza richiedere conversioni o fogli intermedi.</p>
+      </div>
+      <div class="banks-grid reveal-stagger">
+        <article class="bank-card" style="--bank-color:#3e6b4d"><span class="bank-mark">ISP</span><h3>Intesa Sanpaolo</h3><p>Italia · National</p></article>
+        <article class="bank-card" style="--bank-color:#36536c"><span class="bank-mark">VB</span><h3>Volksbank</h3><p>Alto Adige · BPAAIT</p></article>
+        <article class="bank-card" style="--bank-color:#557a5f"><span class="bank-mark">BdM</span><h3>Banca della Marca</h3><p>Veneto · BCC</p></article>
+        <article class="bank-card" style="--bank-color:#a64f42"><span class="bank-mark">BPM</span><h3>Banco BPM</h3><p>Italia · National</p></article>
+        <article class="bank-card" style="--bank-color:#7b4540"><span class="bank-mark">MPS</span><h3>Monte dei Paschi</h3><p>Italia · National</p></article>
+      </div>
+      <p class="banks-note">Non trovi la tua banca? Scrivi a <a href="mailto:contact@netawebstest.com">contact@netawebstest.com</a> con un campione anonimizzato: valuteremo il formato.</p>
     </div>
-    <div class="bank-card" style="--bank-color:#003B7E">
-      <div class="bank-logo">VB</div>
-      <div class="bank-card-name">Volksbank</div>
-      <div class="bank-card-meta">Alto Adige · BPAAIT</div>
-    </div>
-    <div class="bank-card" style="--bank-color:#006B3F">
-      <div class="bank-logo">BdM</div>
-      <div class="bank-card-name">Banca della Marca</div>
-      <div class="bank-card-meta">Veneto · BCC</div>
-    </div>
-    <div class="bank-card" style="--bank-color:#E4002B">
-      <div class="bank-logo">BPM</div>
-      <div class="bank-card-name">Banco BPM</div>
-      <div class="bank-card-meta">Italia · National</div>
-    </div>
-    <div class="bank-card" style="--bank-color:#8B1A1A">
-      <div class="bank-logo">MPS</div>
-      <div class="bank-card-name">Monte dei Paschi</div>
-      <div class="bank-card-meta">Italia · National</div>
-    </div>
-  </div>
-  <div class="banks-cta">
-    Non vedi la tua banca? Scrivici a <a href="mailto:contact@netawebstest.com">contact@netawebstest.com</a> con un campione di estratto conto, la integreremo il prima possibile.
-  </div>
-</section>
+  </section>
 
-<!-- FINAL CTA -->
-<section class="section" style="border-top:0;padding-top:0">
-  <div class="final-cta reveal">
-    <h2>Pronto per la <em>prossima analisi</em>?</h2>
-    <p>Crea un account gratuito in 30 secondi. Nessuna carta richiesta.</p>
-    <a href="login.html?mode=signup" class="btn btn-lg">Inizia gratis</a>
-  </div>
-</section>
+  <section class="shell final-wrap">
+    <div class="final-cta reveal">
+      <span class="eyebrow">Provala nel tuo flusso</span>
+      <h2>Crea un account gratuito e scopri <em>se fa per il tuo studio.</em></h2>
+      <p>Con il piano Free puoi eseguire 2 riconciliazioni al mese, senza carta di credito.</p>
+      <div class="final-actions">
+        <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Crea account gratuito <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+</main>
 
 <footer class="footer">
-  <div class="footer-links">
-    <a href="index.html">Home</a>
-    <a href="pricing.html">Prezzi</a>
-    <a href="faq.html">FAQ</a>
-    <a href="login.html">Accedi</a>
-    <a href="terms.html">Termini</a>
-    <a href="privacy.html">Privacy</a>
-    <a href="cookie.html">Cookie</a>
-    <a href="#" onclick="window.CookieConsent&&window.CookieConsent.openPrefs();return false">Preferenze cookie</a>
+  <div class="shell footer-inner">
+    <a href="index.html" class="brand" aria-label="Mach.bank, home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Mach<span class="brand-tld">.bank</span></span>
+    </a>
+    <nav class="footer-links" aria-label="Link nel piè di pagina">
+      <a href="pricing.html">Prezzi</a>
+      <a href="faq.html">FAQ</a>
+      <a href="login.html">Accedi</a>
+      <a href="terms.html">Termini</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="cookie.html">Cookie</a>
+      <a href="#" onclick="window.CookieConsent&&window.CookieConsent.openPrefs();return false">Preferenze cookie</a>
+    </nav>
+    <p class="footer-made">Made by <a href="https://www.netawebs.net" target="_blank" rel="noopener">Netawebs</a></p>
   </div>
-  <div>All rights reserved to <a href="https://www.netawebs.net" target="_blank" rel="noopener">Netawebs</a></div>
 </footer>
 
+<script defer src="page-transition.js"></script>
 <script defer src="auth-aware-nav.js"></script>
 <script defer src="cookie-banner.js"></script>
 <script defer src="reveal-on-scroll.js"></script>

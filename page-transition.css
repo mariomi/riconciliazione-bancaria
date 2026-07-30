@@ -1,0 +1,72 @@
+:root {
+  --transition-ink: #111411;
+  --transition-paper: #f7f4ed;
+  --transition-sage: #a9bca7;
+  --transition-amber: #d8b579;
+  --transition-coral: #b85f4d;
+}
+
+html.js-page-transition body::before,
+html.js-page-transition body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+  will-change: transform;
+}
+
+html.js-page-transition body::before {
+  top: 0;
+  bottom: 50%;
+  background:
+    radial-gradient(circle at 86% 70%, var(--transition-amber) 0 7px, transparent 8px),
+    linear-gradient(90deg, var(--transition-ink) 0 69%, #304638 69% 84%, var(--transition-sage) 84%);
+  animation: transition-open-left .38s cubic-bezier(.76, 0, .24, 1) both;
+}
+
+html.js-page-transition body::after {
+  top: 50%;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 17% 28%, var(--transition-coral) 0 6px, transparent 7px),
+    linear-gradient(90deg, var(--transition-paper) 0 16%, #dce5d7 16% 30%, var(--transition-ink) 30%);
+  animation: transition-open-right .38s cubic-bezier(.76, 0, .24, 1) both;
+}
+
+html.js-page-transition body.is-leaving::before {
+  animation: transition-close-left .38s cubic-bezier(.76, 0, .24, 1) both;
+}
+
+html.js-page-transition body.is-leaving::after {
+  animation: transition-close-right .38s cubic-bezier(.76, 0, .24, 1) both;
+}
+
+@keyframes transition-open-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-102%); }
+}
+
+@keyframes transition-open-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(102%); }
+}
+
+@keyframes transition-close-left {
+  from { transform: translateX(-102%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes transition-close-right {
+  from { transform: translateX(102%); }
+  to { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js-page-transition body::before,
+  html.js-page-transition body::after {
+    display: none;
+    animation: none;
+  }
+}

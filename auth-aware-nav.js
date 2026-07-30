@@ -29,6 +29,8 @@
       txt === 'accedi / registrati' ||
       txt === 'inizia gratis' ||
       txt.indexOf('account gratis') !== -1 ||
+      txt.indexOf('crea un account') !== -1 ||
+      txt.indexOf('crea account') !== -1 ||
       txt.indexOf('inizia con pro') !== -1 ||
       txt.indexOf('inizia con pro+') !== -1 ||
       txt.indexOf('inizia gratis') !== -1

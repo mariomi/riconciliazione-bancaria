@@ -1,0 +1,9 @@
+{
+  "main": "server/index.js",
+  "compatibility_date": "2026-07-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "client",
+    "binding": "ASSETS"
+  }
+}

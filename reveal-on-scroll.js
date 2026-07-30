@@ -1,8 +1,8 @@
 // Scroll reveal animations.
-// Aggancia un IntersectionObserver a tutti gli elementi marcati .reveal o
-// .reveal-stagger e aggiunge la classe .in-view quando entrano in viewport.
-// Il CSS associato fa il fade-up morbido. Una volta animato, l'elemento viene
-// "unobservato" (non si ri-anima quando esce e rientra).
+// Aggancia un IntersectionObserver agli elementi .reveal e .reveal-stagger e
+// aggiunge .in-view quando entrano in viewport. Il CSS della singola pagina
+// decide la direzione (sulla landing l'ingresso avviene da destra a sinistra).
+// Una volta animato, l'elemento viene "unobservato".
 //
 // Comportamento:
 // - rootMargin: trigger leggermente prima del bordo viewport per partire
@@ -24,6 +24,19 @@
     return;
   }
 
+  var initialHero = document.querySelectorAll(
+    '.hero .reveal, .hero .reveal-stagger'
+  );
+
+  // La transizione di apertura libera la pagina in circa 380 ms. Un piccolo
+  // ritardo mantiene visibile l'ingresso del hero invece di farlo terminare
+  // dietro ai pannelli di transizione.
+  if (initialHero.length) {
+    window.setTimeout(function () {
+      initialHero.forEach(function (el) { el.classList.add('in-view'); });
+    }, 230);
+  }
+
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) {
       if (e.isIntersecting) {
@@ -33,12 +46,13 @@
     });
   }, {
     root: null,
-    // Anticipa il trigger: parte quando l'elemento sta per entrare in viewport
-    // (10% sotto il bordo bottom). Margin negativo in basso rende la soglia
-    // un po' piu' "in alto" — l'animazione e' visibile prima del primo scroll.
-    rootMargin: '0px 0px -8% 0px',
+    // Espande leggermente il viewport verso il basso per far partire il reveal
+    // poco prima che l'elemento diventi pienamente visibile.
+    rootMargin: '0px 0px 8% 0px',
     threshold: 0.05
   });
 
-  els.forEach(function (el) { io.observe(el); });
+  els.forEach(function (el) {
+    if (!el.closest('.hero')) io.observe(el);
+  });
 })();
