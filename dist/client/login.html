@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accedi · Mach.bank</title>
+<script>document.documentElement.classList.add('js-page-transition');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="page-transition.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0a0a0a;--ink-2:#1a1a1a;
+  --paper:#fafaf7;--paper-2:#f1f0eb;
+  --line:#ebe9e2;--line-2:#dcd9cf;
+  --muted:#7a7770;--muted-2:#a8a59c;
+  --green:#0f7a3a;--green-soft:#e7f5ec;
+  --red:#a8201a;--red-soft:#fae9e7;
+  --r:10px;--r-sm:7px;
+}
+html,body{height:100%}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
+.card{width:100%;max-width:420px}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Instrument Serif',serif;font-size:24px;letter-spacing:-0.5px;font-weight:400;line-height:1;color:var(--ink);text-decoration:none;justify-content:center;margin-bottom:36px}
+.brand-mark{width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.brand em{font-style:italic}
+.brand-text{font-family:"Instrument Serif",serif;font-weight:400;letter-spacing:-.3px}
+.brand-text strong{color:var(--ink);font-style:normal;font-weight:400}
+.brand-tld{color:var(--muted);font-style:italic;font-weight:400;letter-spacing:-.2px}
+.brand-text{display:inline}
+
+.head{text-align:center;margin-bottom:28px}
+.head h1{font-family:'Instrument Serif',serif;font-size:36px;font-weight:400;line-height:1.05;letter-spacing:-1px;margin-bottom:8px}
+.head h1 em{font-style:italic;color:var(--muted)}
+.head p{color:var(--muted);font-size:14px}
+
+.tabs{display:flex;background:var(--paper-2);border-radius:9px;padding:4px;margin-bottom:24px}
+.tab{flex:1;padding:9px;border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:var(--muted);border-radius:6px;cursor:pointer;transition:all .15s}
+.tab.active{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+
+form{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.2px}
+.field input{padding:11px 14px;border:1px solid var(--line-2);background:var(--paper);border-radius:7px;font-size:14px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s}
+.field input:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+.field input.error{border-color:var(--red)}
+.hint{font-size:11.5px;color:var(--muted-2);margin-top:2px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border:none;border-radius:7px;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none;width:100%}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:var(--ink-2)}
+.btn-primary:disabled{background:var(--muted-2);cursor:not-allowed}
+.btn-google{background:var(--paper);color:var(--ink);border:1px solid var(--line-2)}
+.btn-google:hover{background:var(--paper-2)}
+.btn-google svg{flex-shrink:0}
+
+.demo-entry{margin-top:22px;padding:16px;border:1px solid var(--line);border-radius:9px;background:var(--paper-2);text-align:left}
+.demo-entry strong{display:block;font-size:13.5px;font-weight:600;margin-bottom:3px}
+.demo-entry p{font-size:12px;line-height:1.5;color:var(--muted);margin-bottom:12px}
+.btn-demo{background:var(--paper);color:var(--ink);border:1px solid var(--line-2)}
+.btn-demo:hover{background:#fff;border-color:var(--ink)}
+.btn-demo:disabled{opacity:.6;cursor:wait}
+
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--muted-2);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.6px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+
+.alert{padding:10px 12px;border-radius:7px;font-size:13px;display:none}
+.alert.show{display:block}
+.alert.ok{background:var(--green-soft);color:var(--green);border:1px solid rgba(15,122,58,.2)}
+.alert.err{background:var(--red-soft);color:var(--red);border:1px solid rgba(168,32,26,.2)}
+
+.foot{margin-top:24px;text-align:center;font-size:12.5px;color:var(--muted)}
+.foot a{color:var(--ink);text-decoration:none;font-weight:500}
+.foot a:hover{text-decoration:underline}
+.page-foot{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);text-align:center;font-size:12px;color:var(--muted)}
+.page-foot a{color:var(--ink);text-decoration:none;font-weight:500}
+.page-foot a:hover{text-decoration:underline}
+.page-foot-links{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-bottom:10px;font-size:11.5px}
+.page-foot-links a{color:var(--muted);font-weight:500}
+
+/* Consent checkboxes */
+.consent-block{margin-top:6px;display:flex;flex-direction:column;gap:10px}
+.consent-row{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;line-height:1.5;color:var(--ink)}
+.consent-row input[type=checkbox]{margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:var(--ink);cursor:pointer}
+.consent-row label{cursor:pointer;color:#222}
+.consent-row label .required{color:var(--red);font-weight:600}
+.consent-row a{color:var(--ink);text-decoration:underline;font-weight:500}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:520px){
+  .wrap{padding:18px 14px;align-items:flex-start;padding-top:32px}
+  .card{max-width:100%}
+  .brand{font-size:20px;margin-bottom:24px}
+  .head{margin-bottom:20px}
+  .head h1{font-size:28px}
+  .head p{font-size:13px}
+  .tabs{margin-bottom:18px}
+  .tab{font-size:12.5px;padding:10px 6px}
+  .field input{font-size:16px;padding:12px 14px}
+  .btn{font-size:14px;padding:12px 18px}
+  .consent-row{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="card">
+    <a href="index.html" class="brand"><span class="brand-mark"></span><span class="brand-text"><strong>Mach</strong><span class="brand-tld">.bank</span></span></a>
+
+    <div class="head">
+      <h1 id="head-title">Bentornato.</h1>
+      <p id="head-sub">Accedi al tuo account per continuare.</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-login" type="button" onclick="setMode('login')">Accedi</button>
+      <button class="tab" id="tab-signup" type="button" onclick="setMode('signup')">Registrati</button>
+    </div>
+
+    <button type="button" class="btn btn-google" onclick="onGoogle()" id="btn-google">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.5-5.2l-6.2-5.3C29.2 35 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.2 5.3c-.4.4 6.7-4.9 6.7-15 0-1.3-.1-2.6-.4-3.9z"/></svg>
+      Continua con Google
+    </button>
+
+    <div class="divider">oppure</div>
+
+    <form id="auth-form" onsubmit="onSubmit(event)">
+      <div class="alert" id="alert"></div>
+
+      <div class="signup-only" style="display:none">
+        <div class="field">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" autocomplete="given-name" placeholder="Mario">
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label for="telefono">Telefono <span style="color:var(--muted-2);font-weight:400">(opzionale)</span></label>
+          <input type="tel" id="telefono" name="telefono" autocomplete="tel" placeholder="+39 333 1234567">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email" placeholder="nome@azienda.it">
+      </div>
+
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <label for="password">Password</label>
+          <a href="#" id="forgot-pw-link" onclick="onForgotPassword();return false" style="font-size:12px;color:var(--ink);text-decoration:none;font-weight:500">Password dimenticata?</a>
+        </div>
+        <input type="password" id="password" name="password" required autocomplete="current-password" minlength="8" placeholder="•••••••••">
+        <span class="hint" id="pw-hint">Almeno 8 caratteri.</span>
+      </div>
+
+      <div class="signup-only consent-block" style="display:none">
+        <div class="consent-row">
+          <input type="checkbox" id="ck-terms" name="terms">
+          <label for="ck-terms">Ho letto e accetto i <a href="terms.html" target="_blank" rel="noopener">Termini e Condizioni</a> di servizio. <span class="required">*</span></label>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" id="ck-privacy" name="privacy">
+          <label for="ck-privacy">Ho letto la <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> e acconsento al trattamento dei miei dati personali per la creazione dell'account. <span class="required">*</span></label>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" id="ck-marketing" name="marketing">
+          <label for="ck-marketing">Voglio ricevere occasionali aggiornamenti via email su nuove funzionalità (puoi annullare in qualsiasi momento).</label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="btn-submit">Accedi</button>
+    </form>
+
+    <div class="foot">
+      <span id="foot-q">Non hai un account?</span>
+      <a href="#" id="foot-link" onclick="setMode(currentMode==='login'?'signup':'login');return false">Registrati</a>
+    </div>
+
+    <div class="demo-entry">
+      <strong>Vuoi prima vedere come funziona?</strong>
+      <p>Esplora l'app con dati di esempio. Caricamenti, nuove riconciliazioni e modifiche sono disattivati.</p>
+      <button type="button" class="btn btn-demo" id="btn-demo" onclick="onDemo()">Entra nella demo</button>
+    </div>
+
+    <div class="page-foot">
+      <div class="page-foot-links">
+        <a href="terms.html">Termini</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="cookie.html">Cookie</a>
+        <a href="#" onclick="window.CookieConsent&&window.CookieConsent.openPrefs();return false">Preferenze cookie</a>
+      </div>
+      All rights reserved to <a href="https://www.netawebs.net" target="_blank" rel="noopener">Netawebs</a>
+    </div>
+  </div>
+</div>
+
+<script defer src="cookie-banner.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+let currentMode='login';
+
+function setMode(mode){
+  currentMode=mode;
+  const isLogin=mode==='login';
+  document.getElementById('tab-login').classList.toggle('active',isLogin);
+  document.getElementById('tab-signup').classList.toggle('active',!isLogin);
+  document.getElementById('head-title').textContent=isLogin?'Bentornato.':'Crea un account.';
+  document.getElementById('head-sub').textContent=isLogin?'Accedi al tuo account per continuare.':'Inizia gratis. Nessuna carta richiesta.';
+  document.getElementById('btn-submit').textContent=isLogin?'Accedi':'Crea account';
+  document.getElementById('foot-q').textContent=isLogin?'Non hai un account?':'Hai già un account?';
+  document.getElementById('foot-link').textContent=isLogin?'Registrati':'Accedi';
+  document.getElementById('password').setAttribute('autocomplete',isLogin?'current-password':'new-password');
+  document.querySelectorAll('.signup-only').forEach(el=>{el.style.display=isLogin?'none':'block'});
+  // Show "Password dimenticata?" only in login mode
+  const fp=document.getElementById('forgot-pw-link');
+  if(fp)fp.style.display=isLogin?'inline':'none';
+  ['nome'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.required=!isLogin;
+  });
+  hideAlert();
+}
+
+async function onForgotPassword(){
+  hideAlert();
+  const email=(document.getElementById('email').value||'').trim();
+  if(!email){
+    showAlert('Inserisci prima la tua email nel campo sopra, poi clicca "Password dimenticata?"','err');
+    document.getElementById('email').focus();
+    return;
+  }
+  const btn=document.getElementById('forgot-pw-link');
+  const orig=btn.textContent;
+  btn.style.pointerEvents='none';btn.textContent='Invio...';
+  try{
+    const{error}=await window.AUTH.client.auth.resetPasswordForEmail(email,{
+      redirectTo:window.location.origin+'/login.html'
+    });
+    if(error)throw error;
+    showAlert('Ti abbiamo mandato un link via email per reimpostare la password. Controlla la tua casella (anche lo spam).','ok');
+  }catch(err){
+    showAlert('Errore: '+(err.message||err),'err');
+  }finally{
+    btn.style.pointerEvents='';btn.textContent=orig;
+  }
+}
+
+function showAlert(msg,type){
+  const el=document.getElementById('alert');
+  el.textContent=msg;
+  el.className='alert show '+type;
+}
+function hideAlert(){document.getElementById('alert').classList.remove('show')}
+
+async function onGoogle(){
+  hideAlert();
+  const btn=document.getElementById('btn-google');
+  btn.disabled=true;
+  try{
+    const{error}=await window.AUTH.client.auth.signInWithOAuth({
+      provider:'google',
+      options:{redirectTo:window.location.origin+'/app.html'}
+    });
+    if(error)throw error;
+  }catch(err){
+    let msg=err.message||'Errore Google sign-in';
+    if(/provider is not enabled/i.test(msg))msg='Google sign-in non abilitato. Abilitalo in Supabase → Authentication → Providers → Google.';
+    showAlert(msg,'err');
+    btn.disabled=false;
+  }
+}
+
+async function onDemo(){
+  hideAlert();
+  const btn=document.getElementById('btn-demo');
+  const orig=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='Apro la demo...';
+  try{
+    const currentSession=await window.AUTH.session();
+    if(currentSession)await window.AUTH.client.auth.signOut({scope:'local'});
+    const{error}=await window.AUTH.signInDemo();
+    if(error)throw error;
+    window.location.replace('app.html');
+  }catch(err){
+    showAlert('La demo non è disponibile in questo momento. Riprova tra poco.','err');
+    console.error('Demo sign-in failed',err);
+    btn.disabled=false;
+    btn.textContent=orig;
+  }
+}
+
+async function onSubmit(e){
+  e.preventDefault();
+  hideAlert();
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const btn=document.getElementById('btn-submit');
+  const orig=btn.textContent;
+  btn.disabled=true;btn.textContent='Attendi...';
+
+  try{
+    if(currentMode==='login'){
+      const{error}=await window.AUTH.signIn(email,password);
+      if(error)throw error;
+      showAlert('Accesso effettuato. Reindirizzamento...','ok');
+      setTimeout(()=>window.location.replace('app.html'),400);
+    }else{
+      if(password.length<8)throw new Error('La password deve essere di almeno 8 caratteri.');
+      if(!document.getElementById('ck-terms').checked)throw new Error('Devi accettare i Termini e Condizioni per continuare.');
+      if(!document.getElementById('ck-privacy').checked)throw new Error('Devi accettare la Privacy Policy per continuare.');
+      const profile={
+        nome:document.getElementById('nome').value.trim(),
+        telefono:document.getElementById('telefono').value.trim(),
+        terms_accepted:true,
+        privacy_accepted:true,
+        marketing_consent:document.getElementById('ck-marketing').checked
+      };
+      const{data,error}=await window.AUTH.signUp(email,password,profile);
+      if(error)throw error;
+      // If email confirmation is off, session is returned. If on, we need user to verify.
+      if(data.session){
+        showAlert('Account creato. Reindirizzamento...','ok');
+        setTimeout(()=>window.location.replace('app.html'),400);
+      }else{
+        showAlert('Account creato. Controlla la tua email per confermare.','ok');
+        btn.disabled=false;btn.textContent=orig;
+      }
+    }
+  }catch(err){
+    let msg=err.message||'Errore sconosciuto';
+    if(/Invalid login credentials/i.test(msg))msg='Email o password non corretta.';
+    else if(/User already registered/i.test(msg))msg='Esiste già un account con questa email. Accedi.';
+    else if(/Password should be at least/i.test(msg))msg='La password deve essere di almeno 8 caratteri.';
+    showAlert(msg,'err');
+    btn.disabled=false;btn.textContent=orig;
+  }
+}
+
+const params=new URLSearchParams(window.location.search);
+if(params.get('demo')==='1'){
+  onDemo();
+}else{
+  // If already signed in, skip to app
+  window.AUTH.redirectIfAuthed();
+  // Apply mode from URL ?mode=signup
+  if(params.get('mode')==='signup')setMode('signup');
+}
+</script>
+
+<script defer src="page-transition.js"></script>
+</body>
+</html>

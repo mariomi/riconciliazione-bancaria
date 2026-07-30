@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ · Mach.bank</title>
+<script>document.documentElement.classList.add('js-anim','js-page-transition');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="page-transition.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+/* Reveal animations (vedi reveal-on-scroll.js) */
+.js-anim .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1);will-change:opacity,transform}
+.js-anim .reveal.in-view{opacity:1;transform:none}
+.js-anim .reveal-stagger > *{opacity:0;transform:translateY(18px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+.js-anim .reveal-stagger.in-view > *{opacity:1;transform:none}
+.js-anim .reveal-stagger.in-view > *:nth-child(1){transition-delay:.04s}
+.js-anim .reveal-stagger.in-view > *:nth-child(2){transition-delay:.10s}
+.js-anim .reveal-stagger.in-view > *:nth-child(3){transition-delay:.16s}
+.js-anim .reveal-stagger.in-view > *:nth-child(4){transition-delay:.22s}
+.js-anim .reveal-stagger.in-view > *:nth-child(5){transition-delay:.28s}
+.js-anim .reveal-stagger.in-view > *:nth-child(6){transition-delay:.34s}
+.js-anim .reveal-stagger.in-view > *:nth-child(7){transition-delay:.40s}
+.js-anim .reveal-stagger.in-view > *:nth-child(8){transition-delay:.46s}
+@media (prefers-reduced-motion:reduce){.js-anim .reveal,.js-anim .reveal-stagger > *{opacity:1;transform:none;transition:none}}
+
+:root{
+  --ink:#0a0a0a;--ink-2:#1a1a1a;
+  --paper:#fafaf7;--paper-2:#f1f0eb;
+  --line:#ebe9e2;--line-2:#dcd9cf;
+  --muted:#7a7770;--muted-2:#a8a59c;
+  --green:#0f7a3a;
+  --r:10px;--r-sm:7px;
+}
+html,body{height:100%}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+
+.nav-wrap{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+.nav-inner{max-width:1400px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:-0.5px;font-weight:400;line-height:1;color:var(--ink);text-decoration:none}
+.brand-mark{width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.brand em{font-style:italic}
+.brand-text{font-family:"Instrument Serif",serif;font-weight:400;letter-spacing:-.3px}
+.brand-text strong{color:var(--ink);font-style:normal;font-weight:400}
+.brand-tld{color:var(--muted);font-style:italic;font-weight:400;letter-spacing:-.2px}
+.brand-text{display:inline}
+.nav-links{display:flex;gap:6px;align-items:center}
+.nav-link{color:var(--muted);font-size:13.5px;font-weight:500;text-decoration:none;padding:8px 12px;border-radius:7px;transition:color .15s,background .15s}
+.nav-link:hover,.nav-link.active{color:var(--ink);background:var(--paper-2)}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:var(--ink-2)}
+.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
+.btn-outline:hover{background:var(--paper-2)}
+
+.page-head{max-width:900px;margin:0 auto;padding:96px 32px 56px;text-align:center}
+.page-head h1{font-family:'Instrument Serif',serif;font-size:64px;font-weight:400;line-height:1;letter-spacing:-2px;margin-bottom:16px}
+.page-head h1 em{font-style:italic;color:var(--muted)}
+.page-head p{color:var(--muted);font-size:17px;max-width:560px;margin:0 auto}
+
+.section{padding:0 32px 96px;max-width:900px;margin:0 auto}
+
+.faq-cat{margin-bottom:48px}
+.faq-cat h2{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;line-height:1.2;letter-spacing:-0.5px;margin-bottom:8px;border-bottom:1px solid var(--line);padding-bottom:12px}
+
+.faq-item{border-bottom:1px solid var(--line);padding:18px 0;cursor:pointer}
+.faq-q{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:15px;font-weight:500;color:var(--ink)}
+.faq-q .chev{transition:transform .2s;color:var(--muted);flex-shrink:0}
+.faq-item.open .chev{transform:rotate(180deg)}
+.faq-a{color:var(--muted);font-size:14px;line-height:1.65;max-height:0;overflow:hidden;transition:max-height .25s,padding .25s}
+.faq-item.open .faq-a{max-height:600px;padding-top:14px}
+
+.contact{margin-top:64px;padding:48px 40px;background:var(--paper-2);border-radius:var(--r);text-align:center}
+.contact h2{font-family:'Instrument Serif',serif;font-size:28px;font-weight:400;line-height:1.1;letter-spacing:-0.5px;margin-bottom:8px}
+.contact p{color:var(--muted);font-size:14px;margin-bottom:20px}
+
+.footer{border-top:1px solid var(--line);padding:32px;text-align:center;color:var(--muted);font-size:12px}
+.footer a{color:var(--ink);text-decoration:none;font-weight:500}
+.footer a:hover{text-decoration:underline}
+
+@media (max-width:768px){
+  .page-head{padding:56px 20px 36px}
+  .page-head h1{font-size:36px;letter-spacing:-1px;line-height:1.05}
+  .page-head p{font-size:14px}
+  .section{padding:24px 20px 64px}
+  .faq-item{padding:18px 20px}
+  .faq-item h3{font-size:15px}
+  .faq-item p{font-size:13.5px}
+  .footer{padding:32px 20px}
+  .contact h2{font-size:24px}
+
+}
+@media(max-width:480px){
+  .page-head h1{font-size:30px}
+}
+
+@media(min-width:1900px){.nav-inner,.page-head,.section,.legal{max-width:1600px}}
+
+/* ===== DROPDOWN MENU (shared across all public pages) ===== */
+.dropdown{position:relative;margin-left:auto}
+.dropdown-trigger{
+  width:42px;height:42px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--paper);border:1px solid var(--line);border-radius:10px;
+  cursor:pointer;color:var(--ink);padding:0;
+  font-family:inherit;
+  transition:background .15s,border-color .15s,transform .12s;
+}
+.dropdown-trigger:hover{background:var(--paper-2);border-color:var(--line-2)}
+.dropdown-trigger:active{transform:scale(.96)}
+.dropdown-trigger svg{display:block}
+.dropdown-panel{
+  position:absolute;top:calc(100% + 8px);right:0;
+  min-width:240px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 16px 48px rgba(0,0,0,.10),0 4px 12px rgba(0,0,0,.04);
+  padding:6px;
+  display:flex !important;flex-direction:column;align-items:stretch;gap:0;
+  opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top right;
+  pointer-events:none;
+  transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1);
+  z-index:200;
+}
+.dropdown.open .dropdown-panel{opacity:1;transform:none;pointer-events:auto}
+.dropdown-panel a{
+  font-size:14px;font-weight:500;color:var(--ink);text-decoration:none;
+  padding:11px 14px;border-radius:8px;
+  display:flex;align-items:center;
+  letter-spacing:-0.005em;
+  transition:background .12s;
+  border:0!important;
+}
+.dropdown-panel a:hover,
+.dropdown-panel a:focus{background:var(--paper-2)}
+.dropdown-panel a.btn{
+  justify-content:center;font-weight:500;margin-top:4px;
+}
+.dropdown-panel a.btn-outline{
+  border:1px solid var(--line-2)!important;background:transparent;
+}
+.dropdown-panel a.btn-outline:hover{background:var(--paper-2)}
+.dropdown-panel a.btn-primary{
+  background:var(--ink);color:#fff;
+}
+.dropdown-panel a.btn-primary:hover{background:var(--ink-2)}
+
+/* Desktop: il dropdown diventa una nav inline orizzontale, non un menu
+   cliccabile. Hamburger nascosto, panel "aperto" di default e in flusso. */
+@media(min-width:769px){
+  .dropdown-trigger{display:none}
+  .dropdown-panel{
+    position:static;
+    min-width:0;
+    background:transparent;
+    border:0;
+    box-shadow:none;
+    padding:0;
+    flex-direction:row;
+    align-items:center;
+    gap:6px;
+    opacity:1;
+    transform:none;
+    pointer-events:auto;
+    z-index:auto;
+    transition:none;
+  }
+  .dropdown-panel a:not(.btn){
+    padding:8px 12px;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--muted);
+    border-radius:7px;
+  }
+  .dropdown-panel a:not(.btn):hover{color:var(--ink);background:var(--paper-2)}
+  .dropdown-panel a.btn{
+    margin-top:0;
+    padding:9px 18px;
+    font-size:13px;
+    justify-content:center;
+  }
+  .dropdown-panel a.btn-outline{
+    color:var(--ink);
+    border:1px solid var(--line-2)!important;
+    background:transparent;
+  }
+  .dropdown-panel a.btn-outline:hover{background:var(--paper-2)}
+  .dropdown-panel a.btn-primary{
+    background:var(--ink);color:#fff;
+  }
+  .dropdown-panel a.btn-primary:hover{background:var(--ink-2)}
+}
+
+</style>
+</head>
+<body>
+
+<div class="nav-wrap">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="brand-mark"></span><span class="brand-text"><strong>Mach</strong><span class="brand-tld">.bank</span></span></a>
+      <div class="dropdown">
+      <button type="button" class="dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label="Menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <nav class="dropdown-panel nav-links" role="menu">
+      <a href="index.html#features" class="nav-link">Funzionalità</a>
+      <a href="pricing.html" class="nav-link">Prezzi</a>
+      <a href="faq.html" class="nav-link active">FAQ</a>
+      <a href="login.html" class="btn btn-outline">Accedi</a>
+      <a href="login.html?mode=signup" class="btn btn-primary">Inizia gratis</a>
+    </nav>
+    </div>
+  </div>
+</div>
+
+<div class="page-head reveal">
+  <h1>Domande <em>frequenti</em>.</h1>
+  <p>Tutto quello che vuoi sapere su Mach.bank, dalle banche supportate allo storico delle analisi alla privacy dei dati.</p>
+</div>
+
+<section class="section">
+
+  <div class="faq-cat reveal">
+    <h2>Generale</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Cos'è Mach.bank?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Mach.bank è uno strumento per la riconciliazione bancaria automatica. Carichi i partitari della tua contabilità e gli estratti conto della banca, e il sistema confronta i movimenti, evidenziando match esatti, approssimativi e voci non trovate. Pensato per commercialisti, controller e PMI.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Cosa serve per iniziare?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Crea un account gratuito (bastano email e password), carica i partitari (PDF dalla contabilità) e gli estratti conto (PDF dalla banca), dai un nome all'analisi e premi <strong>Avvia analisi</strong>. Riceverai i match e potrai scaricare gli ZIP con i PDF annotati.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Devo installare qualcosa?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">No. Mach.bank è una web app: funziona direttamente nel browser. Non serve installare nulla, non occupa spazio sul disco, e gli aggiornamenti li facciamo noi.</div>
+    </div>
+  </div>
+
+  <div class="faq-cat reveal">
+    <h2>Banche e formati</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Quali banche sono supportate?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Al momento: <strong>Intesa Sanpaolo</strong> (anche PDF criptati), <strong>Volksbank</strong>, <strong>Banca della Marca (BCC)</strong>, <strong>Banco BPM</strong> e <strong>Monte dei Paschi di Siena</strong>. Altri parser sono in arrivo.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Avete un parser per la mia banca?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Se non vedi la tua banca tra le supportate, scrivici. Con un campione di estratto conto in PDF possiamo aggiungere il parser di solito in pochi giorni. Anche per banche estere.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Che formato deve avere il partitario?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">PDF testuale, con date in formato DD/MM/YYYY o DD/MM/YY. Riconosciamo automaticamente i layout dei principali gestionali italiani (TeamSystem, Zucchetti, Profis e simili). Il sistema rileva da solo le colonne Dare/Avere/Saldo.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Cosa succede con i PDF criptati?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Gli estratti conto Intesa Sanpaolo e altri istituti spesso hanno cifratura forte e font con codifica privata (PUA). Mach.bank decodifica questi formati nativamente, senza che tu debba decifrarli o convertirli prima.</div>
+    </div>
+  </div>
+
+  <div class="faq-cat reveal">
+    <h2>Matching e risultati</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Come funziona il matching?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Confrontiamo importo e data con tolleranza progressiva: prima i match esatti (stesso giorno e stesso importo), poi approssimativi (fino a 45 giorni di scarto), infine fuzzy sulla descrizione per i casi più ambigui. Le voci senza match restano evidenziate in rosso per la verifica manuale.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Cosa contengono i PDF annotati?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Sono i tuoi PDF originali (sia gli estratti conto che i partitari) con un'evidenziazione colorata per ogni riga: <strong>verde</strong> per i match esatti, <strong>arancione</strong> per gli approssimativi, <strong>rosso</strong> per le voci non trovate. Mantengono il testo selezionabile e una legenda in alto a destra. Pronti da archiviare o condividere col cliente.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Posso esportare i risultati in Excel?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">L'export Excel è in roadmap. Per ora puoi visualizzare la tabella dei risultati, filtrare per tipo di match e scaricare i PDF annotati con tutte le evidenziazioni.</div>
+    </div>
+  </div>
+
+  <div class="faq-cat reveal">
+    <h2>Storico delle analisi</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Le analisi vengono salvate?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a"><strong>Per impostazione predefinita NO.</strong> Lo storico è disattivato per default — le tue analisi vivono solo nel browser durante la sessione. Per attivarlo vai in <strong>Impostazioni → Privacy e dati → Salva risultati nello storico</strong>. Solo i piani a pagamento (Pro, Pro+, Business) possono attivarlo: il piano Free non include lo storico.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Cosa viene salvato esattamente nello storico?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Solo le tabelle di match risultanti dalla riconciliazione: nome dell'analisi, data, numero di movimenti, righe con date/descrizioni/importi. <strong>I PDF originali NON vengono mai salvati sui nostri server</strong>, neanche con lo storico attivo. Il parsing avviene sempre nel tuo browser.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Per quanto tempo conservate le analisi?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Dipende dal piano: <strong>Pro</strong> 4 mesi · <strong>Pro+</strong> 12 mesi · <strong>Business</strong> 24 mesi. Le analisi che marchi come <em>preferite</em> con la stellina vengono conservate finché l'account è attivo. Tutte le altre vengono cancellate automaticamente da una procedura di pulizia plan-based.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Posso cancellare lo storico in qualsiasi momento?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Sì. Tre modi: 1) cancellare singole analisi dal dettaglio nello storico; 2) <strong>"Elimina tutto lo storico"</strong> in Impostazioni → Privacy e dati (azione immediata e irreversibile); 3) disattivare il toggle storico — gli storici precedenti restano visibili ma le analisi successive non saranno salvate.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Posso esportare le mie analisi?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Sì, ai sensi dell'articolo 20 GDPR (diritto alla portabilità) puoi richiedere via email a <a href="mailto:contact@netawebstest.com">contact@netawebstest.com</a> l'export di tutte le tue analisi in formato JSON strutturato.</div>
+    </div>
+  </div>
+
+  <div class="faq-cat reveal">
+    <h2>Privacy e sicurezza</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">I miei PDF vengono caricati su un server?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">No. Tutto il parsing dei PDF avviene esclusivamente nel tuo browser, in JavaScript. I file non lasciano mai il tuo computer. Salviamo solo le credenziali del tuo account (email e password con hashing bcrypt). Una scelta architetturale precisa per la massima privacy.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Dove sono salvate le mie credenziali?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Su Supabase, infrastruttura ospitata in Europa (Irlanda). La password è memorizzata come hash bcrypt — nemmeno noi possiamo leggerla in chiaro.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Sono conforme al GDPR?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Sì. Trattando solo email e password (e niente dati bancari sui nostri server, dato che restano nel tuo browser), il perimetro è minimo. Su richiesta possiamo fornire un DPA (Data Processing Agreement) per i piani Business.</div>
+    </div>
+  </div>
+
+  <div class="faq-cat reveal">
+    <h2>Account e fatturazione</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Posso disdire in qualsiasi momento?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Sì. Nessun vincolo, nessuna penale. Puoi annullare il piano a pagamento dal tuo account e tornare gratuitamente al piano Free. Mantieni l'accesso fino alla fine del periodo già pagato.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Posso provare Pro prima di pagare?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Il piano Free ti permette già di provare tutto il flusso (2 analisi al mese, tutte le banche, PDF annotati). Quando hai bisogno di più analisi al mese o vuoi attivare lo storico opzionale, passa a Pro o Pro+.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">Emettete fattura?<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Sì, fattura elettronica italiana per partita IVA, ricevuta per privati. Inserisci i dati di fatturazione al momento dell'upgrade.</div>
+    </div>
+  </div>
+
+  <div class="contact reveal">
+    <h2>Non hai trovato la risposta?</h2>
+    <p>Scrivici, rispondiamo in giornata.</p>
+    <a href="mailto:contact@netawebstest.com?subject=Mach.bank" class="btn btn-primary">Contattaci</a>
+  </div>
+
+</section>
+
+<footer class="footer">
+  <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-bottom:14px;font-size:13px">
+    <a href="index.html" style="color:var(--muted);font-weight:500;text-decoration:none">Home</a>
+    <a href="pricing.html" style="color:var(--muted);font-weight:500;text-decoration:none">Prezzi</a>
+    <a href="faq.html" style="color:var(--muted);font-weight:500;text-decoration:none">FAQ</a>
+    <a href="terms.html" style="color:var(--muted);font-weight:500;text-decoration:none">Termini</a>
+    <a href="privacy.html" style="color:var(--muted);font-weight:500;text-decoration:none">Privacy</a>
+    <a href="cookie.html" style="color:var(--muted);font-weight:500;text-decoration:none">Cookie</a>
+    <a href="#" onclick="window.CookieConsent&&window.CookieConsent.openPrefs();return false" style="color:var(--muted);font-weight:500;text-decoration:none">Preferenze cookie</a>
+  </div>
+  All rights reserved to <a href="https://www.netawebs.net" target="_blank" rel="noopener">Netawebs</a>
+</footer>
+
+<script defer src="page-transition.js"></script>
+<script defer src="auth-aware-nav.js"></script>
+<script defer src="cookie-banner.js"></script>
+<script defer src="reveal-on-scroll.js"></script>
+<script defer src="dropdown-menu.js"></script>
+</body>
+</html>
